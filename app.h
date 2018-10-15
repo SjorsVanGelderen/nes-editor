@@ -9,15 +9,18 @@
 #include <math.h>
 
 #include "appstatus.h"
+#include "appmode.h"
 #include "media.h"
 #include "debug.h"
 #include "palette.h"
 #include "samples.h"
 #include "character.h"
+#include "nametable.h"
 
 class Palette;
 class Samples;
 class Character;
+class Nametable;
 
 class App
 {
@@ -40,6 +43,8 @@ private:
     
     static const std::string CAPTION;
 
+    static AppMode mode;
+
     static bool dragging;
     static bool canSave;
     static bool canLoad;
@@ -48,6 +53,7 @@ private:
     static std::unique_ptr<Palette>   palette;
     static std::unique_ptr<Samples>   samples;
     static std::unique_ptr<Character> character;
+    static std::unique_ptr<Nametable> nametable;
 
     static glm::vec2 size;
     static glm::vec2 frustumSize;

@@ -25,7 +25,7 @@ public:
     static glm::vec2 GetSize();
     static void      Move(glm::vec2 p);
     static float     GetZoom();
-    static void      Zoom(float x);
+    static void      Zoom(GLfloat x);
 
     static AppStatus            SetCharacter(std::vector<GLubyte> character);
     static std::vector<GLubyte> GetCharacter();
@@ -35,7 +35,7 @@ private:
     static void CharacterToTexture();
     
     static const glm::vec2 size;
-    static const float     maxZoom;
+    static const GLfloat   maxZoom;
     
     static glm::vec3 position;
     static float     zoom;

@@ -4,10 +4,10 @@ const glm::vec2 frustumSize = App::GetFrustumSize();
 const glm::vec2 textureSize = glm::vec2(256, 128);
 
 const glm::vec2 Character::size    = glm::vec2(frustumSize.x * 2, frustumSize.x);
-const float     Character::maxZoom = 24.0f;
+const GLfloat   Character::maxZoom = 24.0f;
 
 glm::vec3 Character::position;
-float     Character::zoom;
+GLfloat   Character::zoom;
 glm::mat4 Character::model;
 
 GLuint Character::programId;
@@ -237,7 +237,7 @@ void Character::CharacterToTexture()
     }
 }
 
-void Character::Zoom(float x)
+void Character::Zoom(GLfloat x)
 {   
     const auto newZoom = zoom + x * 0.05f;
     

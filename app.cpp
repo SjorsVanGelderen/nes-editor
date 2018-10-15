@@ -2,6 +2,8 @@
 
 const std::string App::CAPTION = "NES editor";
 
+AppMode App::mode = AppMode::CharacterMode;
+
 bool App::dragging = false;
 bool App::canSave  = true;
 bool App::canLoad  = true;
@@ -34,6 +36,7 @@ glm::mat4 App::view = glm::lookAt(
 std::unique_ptr<Palette>   App::palette;
 std::unique_ptr<Samples>   App::samples;
 std::unique_ptr<Character> App::character;
+std::unique_ptr<Nametable> App::nametable;
 
 std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> App::window =
     std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)>
@@ -78,16 +81,26 @@ AppStatus App::Start()
         const auto result = character->Setup(palette->GetPaletteTextureId());
         if(result != AppStatus::Success) return result;
     }
+
+    nametable = std::make_unique<Nametable>();
+
+    {
+        const auto result = nametable->Setup(palette->GetPaletteTextureId());
+
+        if(result != AppStatus::Success) return result;
+    }
+
+    auto w = window.get();
     
     while(
-        !glfwWindowShouldClose(window.get())
+        !glfwWindowShouldClose(w)
         && glfwGetKey(window.get(), GLFW_KEY_ESCAPE) != GLFW_PRESS
         )
     {
         
-        dragging = glfwGetKey(window.get(), GLFW_KEY_SPACE) == GLFW_PRESS;
+        dragging = glfwGetKey(w, GLFW_KEY_SPACE) == GLFW_PRESS;
 
-        if(glfwGetKey(window.get(), GLFW_KEY_S) == GLFW_PRESS)
+        if(glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
         {
             if(canSave)
             {
@@ -100,7 +113,7 @@ AppStatus App::Start()
             canSave = true;
         }
         
-        if(glfwGetKey(window.get(), GLFW_KEY_L) == GLFW_PRESS)
+        if(glfwGetKey(w, GLFW_KEY_L) == GLFW_PRESS)
         {
             if(canLoad)
             {
@@ -111,6 +124,19 @@ AppStatus App::Start()
         else
         {
             canLoad = true;
+        }
+
+        if(glfwGetKey(w, GLFW_KEY_1) == GLFW_PRESS)
+        {
+            mode = AppMode::CharacterMode;
+        }
+        else if(glfwGetKey(w, GLFW_KEY_2) == GLFW_PRESS)
+        {
+            mode = AppMode::NametableMode;
+        }
+        else if(glfwGetKey(w, GLFW_KEY_3) == GLFW_PRESS)
+        {
+            mode = AppMode::AttributeTableMode;
         }
         
         const auto result = Update();
@@ -127,48 +153,78 @@ AppStatus App::Update()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         bool clickConsumed = !newClick;
-    
-        {
-            const auto m = App::ScreenToSurface(mouse, palette->GetPosition(), palette->GetSize());
-        
-            if(!clickConsumed && m.x != -1)
-            {
-                palette->Click(m);
-                clickConsumed = true;
-            }
-        
-            const auto result = palette->Draw(projection, view, m);
-            if(result != AppStatus::Success) return result;
-        }
 
+        switch(mode)
         {
-            const auto m = App::ScreenToSurface(mouse, samples->GetPosition(), samples->GetSize());
-        
-            if(!clickConsumed && m.x != -1)
+        case AppMode::CharacterMode:
             {
-                samples->Click(m);
-                clickConsumed = true;
-            }
+                const auto m = App::ScreenToSurface(mouse, palette->GetPosition(), palette->GetSize());
+                
+                if(!clickConsumed && m.x != -1)
+                {
+                    palette->Click(m);
+                    clickConsumed = true;
+                }
         
-            const auto result = samples->Draw(projection, view, m);
-            if(result != AppStatus::Success) return result;
-        }
-
-        {
-            const auto m = App::ScreenToSurface(
-                mouse,
-                character->GetPosition() * character->GetZoom(),
-                character->GetSize(), character->GetZoom()
-                );
-
-            if(!clickConsumed && m.x != -1)
-            {
-                character->Click(m);
-                clickConsumed = true;
+                const auto result = palette->Draw(projection, view, m);
+                if(result != AppStatus::Success) return result;
             }
 
-            const auto result = character->Draw(projection, view, m);
-            if(result != AppStatus::Success) return result;
+            {
+                const auto m = App::ScreenToSurface(mouse, samples->GetPosition(), samples->GetSize());
+        
+                if(!clickConsumed && m.x != -1)
+                {
+                    samples->Click(m);
+                    clickConsumed = true;
+                }
+        
+                const auto result = samples->Draw(projection, view, m);
+                if(result != AppStatus::Success) return result;
+            }
+
+            {
+                const auto m = App::ScreenToSurface(
+                    mouse,
+                    character->GetPosition() * character->GetZoom(),
+                    character->GetSize(), character->GetZoom()
+                    );
+
+                if(!clickConsumed && m.x != -1)
+                {
+                    character->Click(m);
+                    clickConsumed = true;
+                }
+
+                const auto result = character->Draw(projection, view, m);
+                if(result != AppStatus::Success) return result;
+            }
+            break;
+
+        case AppMode::NametableMode:
+            {
+                const auto m = App::ScreenToSurface(
+                    mouse,
+                    nametable->GetPosition() * nametable->GetZoom(),
+                    nametable->GetSize(), nametable->GetZoom()
+                    );
+
+                if(!clickConsumed && m.x != -1)
+                {
+                    nametable->Click(m);
+                    clickConsumed = true;
+                }
+
+                const auto result = nametable->Draw(projection, view, m);
+                if(result != AppStatus::Success) return result;
+            }
+            break;
+
+        case AppMode::AttributeTableMode:
+            break;
+
+        default:
+            break;
         }
     
         glfwSwapBuffers(window.get());
@@ -304,8 +360,22 @@ void App::GLFWCursorPositionCallback(GLFWwindow* window, double mX, double mY)
             -(mouse.x - newMouse.x),
             mouse.y - newMouse.y
             );
-        
-        character->Move(displacement);
+
+        switch(mode)
+        {
+        case AppMode::CharacterMode:
+            character->Move(displacement);
+            break;
+
+        case AppMode::NametableMode:
+            break;
+
+        case AppMode::AttributeTableMode:
+            break;
+
+        default:
+            break;
+        }
     }
 
     mouse = newMouse;
@@ -329,5 +399,20 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
 
 void App::GLFWScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
 {
-    character->Zoom(offsetY);
+    switch(mode)
+    {
+    case AppMode::CharacterMode:
+        character->Zoom(offsetY);
+        break;
+
+    case AppMode::NametableMode:
+        nametable->Zoom(offsetY);
+        break;
+
+    case AppMode::AttributeTableMode:
+        break;
+
+    default:
+        break;
+    }
 }

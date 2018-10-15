@@ -8,7 +8,8 @@ media.cpp          \
 debug.cpp          \
 palette.cpp        \
 samples.cpp        \
-character.cpp      
+character.cpp      \
+nametable.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=app
 
