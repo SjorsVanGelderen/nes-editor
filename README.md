@@ -12,16 +12,15 @@ The full NES palette is available, and during editing the palette is constrained
 ## Next priorities
 
 * More drawing tools
-* Fix zooming controls
 * Specify file to load
 * Specify file to save
-* Fix the samples (sub-palettes)
 * Implement toggle-able grid
 * Using different patterns
 * Allow saving samples (sub-palettes)
 * Allow specifying and saving meta-sprites
 * Implement nametable editor (including meta-tiles)
 * Implement attribute-table editor
+* Support for other operating systems (Windows, Linux, possibly BSD)
 
 ## Controls
 
