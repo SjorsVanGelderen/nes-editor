@@ -130,14 +130,19 @@ AppStatus Samples::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 
 bool Samples::Click(glm::vec2 mouse)
 {
-    const auto offset = mouse.y > 0.5 ? 13 : 0;
+    const auto second = mouse.y > 0.5;
+    const auto offset = second ? 13 : 0;
+    
     activeColor = offset + mouse.x * samples->size() / 2;
 
     if(activeColor == samples->size()) activeColor--;
 
-    if(activeColor != samples->size() - 14 && activeColor != samples->size() - 1)
+    if( activeColor != samples->size() / 2 - 1
+     && activeColor != samples->size() - 1
+      )
     {
-        activeSample = floor(activeColor / 3);
+        const auto groupOffset = second ? 4 : 0;
+        activeSample = floor((activeColor % (samples->size() / 2)) / 3 + groupOffset);
     }
     
     return false;

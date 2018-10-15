@@ -2,8 +2,10 @@
 
 ![Screenshot of the editor](/screenshot.png?raw=true)
 
+![Another screenshot of the editor](/screenshot2.png?raw=true)
+
 ## Introduction
-This project is still in an early stage. Currently, the editor allows loading, editing and saving of `.chr` files. It has only been tested with graphics extracted from a `Super Mario Bros` `ROM` file. The project has only been tested on `MacOS High Sierra`.
+This project is still in an early stage. Currently, the editor allows loading, editing and saving of `.chr` files. It has only been tested with graphics extracted from a `Super Mario Bros.` `ROM` file. The project has only been tested on `MacOS High Sierra`.
 
 The full NES palette is available, and during editing the palette is constrained so as to discourage graphics the NES can't actually render.
 

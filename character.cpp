@@ -113,7 +113,7 @@ AppStatus Character::Setup(GLuint textureId)
 
 AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 {
-    model = glm::translate(glm::mat4(1.0f), position);
+    model = glm::translate(glm::mat4(1.0f), glm::vec3(position.x * zoom, position.y * zoom, position.z));
     
     const auto mvp          = projection * view * glm::scale(model, glm::vec3(zoom));
     const auto samples      = Samples::GetSamples();
@@ -157,12 +157,13 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 
 bool Character::Click(glm::vec2 mouse)
 {
+    // TODO: Try to simplify this
     const float mouseX      = (mouse.x > 0.5f ? mouse.x - 0.5f : mouse.x) * 2;
     const uint  bankOffset  = mouse.x > 0.5f ? pow(128, 2) : 0;
     const uint  cIndex      = bankOffset + floor(mouse.y * 128) * 128 + floor(mouseX * 128);
     const uint  pIndex      = floor(mouse.y * textureSize.y) * textureSize.x + floor(mouse.x * textureSize.x);
     const uint  activeColor = Samples::GetActiveColor();
-    const uint  color       = activeColor == 12 ? 0 : activeColor % 3 + 1;
+    const uint  color       = activeColor == 12 || activeColor == 24 ? 0 : activeColor % 3 + 1; // Requires review
     
     character[cIndex] = color;
     pixels[pIndex]    = GLubyte(255 / 3 * color);
@@ -209,7 +210,7 @@ std::vector<GLubyte> Character::GetPixels()
 
 void Character::Move(glm::vec2 p)
 {
-    position = position + glm::vec3(p.x, p.y, 0.0);
+    position = position + glm::vec3(p.x, p.y, 0.0) / zoom;
 }
 
 float Character::GetZoom()
@@ -227,17 +228,17 @@ void Character::CharacterToTexture()
         {
             for(uint x = 0; x < 128; x++)
             {
-                pixels[y * textureSize.x + bank * 128 + x] = 255 / 3 * character[bank * pow(128, 2) + y * 128 + x];
+                const auto i = y * textureSize.x + bank * 128 + x;
+                const auto c = 255 / 3 * character[bank * pow(128, 2) + y * 128 + x];
+                
+                pixels[i] = c;
             }
         }
     }
-    
-    // std::transform(character.begin(), character.end(), pixels.begin(),
-    //                [] (const GLubyte c) -> GLubyte { return 255 / 3 * c; });
 }
 
 void Character::Zoom(float x)
-{
+{   
     const auto newZoom = zoom + x * 0.05f;
     
     zoom = newZoom < 1.0f    ? 1.0f

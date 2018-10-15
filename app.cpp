@@ -126,8 +126,6 @@ AppStatus App::Update()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // TODO: Write a proper interface so I can use pointers to avoid repetition here
-
         bool clickConsumed = !newClick;
     
         {
@@ -157,7 +155,11 @@ AppStatus App::Update()
         }
 
         {
-            const auto m = App::ScreenToSurface(mouse, character->GetPosition(), character->GetSize(), character->GetZoom());
+            const auto m = App::ScreenToSurface(
+                mouse,
+                character->GetPosition() * character->GetZoom(),
+                character->GetSize(), character->GetZoom()
+                );
 
             if(!clickConsumed && m.x != -1)
             {
@@ -266,7 +268,6 @@ glm::vec2 App::GetFrustumSize()
     return frustumSize;
 }
 
-// Doesn't take zooming into account
 glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
 {
     position.y = -position.y;
@@ -303,9 +304,7 @@ void App::GLFWCursorPositionCallback(GLFWwindow* window, double mX, double mY)
             -(mouse.x - newMouse.x),
             mouse.y - newMouse.y
             );
-
-        //view = glm::translate(view, glm::vec3(displacement.x, displacement.y, 0.0f));
-
+        
         character->Move(displacement);
     }
 
@@ -330,7 +329,5 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
 
 void App::GLFWScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
 {
-    // TODO: Fix scrolling, scaling doesn't produce a nice effect after dragging
-    
     character->Zoom(offsetY);
 }

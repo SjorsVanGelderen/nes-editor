@@ -5,10 +5,9 @@ in vec2 uv;
 out vec3 color;
 
 const uvec2 TEXTURE_SIZE = uvec2(256, 128);
-const uint  SAMPLES_SIZE = 13u;
+const uint  SAMPLES_SIZE = 26u;
 const uvec2 PALETTE_SIZE = uvec2(16u, 4u);
 const vec2  PIXEL_SIZE   = vec2(1.0 / TEXTURE_SIZE.x, 1.0 / TEXTURE_SIZE.y);
-// const vec3  B_COLOR      = vec3(1.0, 1.0, 0.0);
 
 uniform vec2      mouse;
 uniform uint      samples[SAMPLES_SIZE];
@@ -68,6 +67,4 @@ void main()
     
     color = onHover ? vec3(1.0, 1.0, 0.0) //colors[activeColor]
                     : colors[attributeValue];
-
-    // color = sqrt(pow(abs(mouse.x - uv.x), 2) + pow(abs(mouse.y - uv.y), 2)) < 0.05 ? colors[activeColor] : vec3(1.0, 0.0, 1.0);
 }
