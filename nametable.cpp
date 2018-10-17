@@ -15,10 +15,12 @@ GLuint Nametable::indexBufferId;
 GLuint Nametable::paletteTextureId;
 GLint  Nametable::mvpUniformId;
 GLint  Nametable::mouseUniformId;
+GLint  Nametable::tilesUniformId;
 
 std::vector<GLfloat>     Nametable::vertices;
 std::vector<GLuint>      Nametable::indices;
 std::vector<std::string> Nametable::filenames;
+std::vector<GLuint>      Nametable::tiles;
 
 glm::mat4 Nametable::model;
 
@@ -48,9 +50,16 @@ AppStatus Nametable::Setup(GLuint textureId)
         0.0f, 0.0f
     };
 
-    indices = { 0, 1, 2, 2, 3, 0 };
-
+    indices   = { 0, 1, 2, 2, 3, 0 };
     filenames = { "nametable.vert", "nametable.frag" };
+
+    for(int y = 0; y < 16; y++)
+    {
+        for(int x = 0; x < 16; x++)
+        {
+            tiles.push_back(y * x);
+        }
+    }
 
     glGenBuffers(1, &vertexBufferId);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
@@ -68,9 +77,11 @@ AppStatus Nametable::Setup(GLuint textureId)
     paletteTextureId = textureId;
     mvpUniformId     = glGetUniformLocation(programId, "mvp");
     mouseUniformId   = glGetUniformLocation(programId, "mouse");
+    tilesUniformId   = glGetUniformLocation(programId, "tiles");
 
-    zoom  = 1.0f;
-    model = glm::translate(glm::mat4(1.0f), position);
+    zoom     = 1.0f;
+    position = glm::vec3(0.0f, 0.0f, -3.0f);
+    model    = glm::translate(glm::mat4(1.0f), position);
 
     return AppStatus::Success;
 }
@@ -90,7 +101,7 @@ AppStatus Nametable::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 
     glUniformMatrix4fv(mvpUniformId, 1, GL_FALSE, &mvp[0][0]);
     glUniform2fv(mouseUniformId, 1, &mouse[0]);
-    // glUniform1uiv(samplesUniformId, samples->size(), samples->data());
+    glUniform1uiv(tilesUniformId, tiles.size(), tiles.data());
     // glUniform1ui(activeSampleUniformId, activeSample);
     // glUniform1ui(activeColorUniformId, activeColor);
     // glUniform1i(paletteTextureUniformId, 0);

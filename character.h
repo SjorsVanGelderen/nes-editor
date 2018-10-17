@@ -37,8 +37,11 @@ private:
     static const glm::vec2 size;
     static const GLfloat   maxZoom;
     
+    static float zoom;
+    static float nametableZoom;
+    
     static glm::vec3 position;
-    static float     zoom;
+    static glm::vec3 nametablePosition;
     static glm::mat4 model;
     
     static GLuint programId;

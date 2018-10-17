@@ -157,68 +157,33 @@ AppStatus App::Update()
         switch(mode)
         {
         case AppMode::CharacterMode:
-            {
-                const auto m = App::ScreenToSurface(mouse, palette->GetPosition(), palette->GetSize());
-                
-                if(!clickConsumed && m.x != -1)
-                {
-                    palette->Click(m);
-                    clickConsumed = true;
-                }
-        
-                const auto result = palette->Draw(projection, view, m);
-                if(result != AppStatus::Success) return result;
-            }
+        {
+            const auto result = DrawPalette(&clickConsumed);
+            if(result != AppStatus::Success) return result;
+        }
 
-            {
-                const auto m = App::ScreenToSurface(mouse, samples->GetPosition(), samples->GetSize());
-        
-                if(!clickConsumed && m.x != -1)
-                {
-                    samples->Click(m);
-                    clickConsumed = true;
-                }
-        
-                const auto result = samples->Draw(projection, view, m);
-                if(result != AppStatus::Success) return result;
-            }
+        {
+            const auto result = DrawSamples(&clickConsumed);
+            if(result != AppStatus::Success) return result;
+        }
 
-            {
-                const auto m = App::ScreenToSurface(
-                    mouse,
-                    character->GetPosition() * character->GetZoom(),
-                    character->GetSize(), character->GetZoom()
-                    );
-
-                if(!clickConsumed && m.x != -1)
-                {
-                    character->Click(m);
-                    clickConsumed = true;
-                }
-
-                const auto result = character->Draw(projection, view, m);
-                if(result != AppStatus::Success) return result;
-            }
-            break;
+        {
+            const auto result = DrawCharacter(&clickConsumed);
+            if(result != AppStatus::Success) return result;
+        }
+        break;
 
         case AppMode::NametableMode:
-            {
-                const auto m = App::ScreenToSurface(
-                    mouse,
-                    nametable->GetPosition() * nametable->GetZoom(),
-                    nametable->GetSize(), nametable->GetZoom()
-                    );
+        {
+            const auto result = DrawNametable(&clickConsumed);
+            if(result != AppStatus::Success) return result;
+        }
 
-                if(!clickConsumed && m.x != -1)
-                {
-                    nametable->Click(m);
-                    clickConsumed = true;
-                }
-
-                const auto result = nametable->Draw(projection, view, m);
-                if(result != AppStatus::Success) return result;
-            }
-            break;
+        {
+            const auto result = DrawCharacter(&clickConsumed);
+            if(result != AppStatus::Success) return result;
+        }
+        break;
 
         case AppMode::AttributeTableMode:
             break;
@@ -233,6 +198,77 @@ AppStatus App::Update()
     glfwPollEvents();
 
     return AppStatus::Success;
+}
+
+AppStatus App::DrawPalette(bool* clickConsumed)
+{
+    const auto m = App::ScreenToSurface(mouse, palette->GetPosition(), palette->GetSize());
+                
+    if(!*clickConsumed && m.x != -1)
+    {
+        palette->Click(m);
+        *clickConsumed = true;
+    }
+        
+    const auto result = palette->Draw(projection, view, m);
+    return result;
+}
+
+AppStatus App::DrawSamples(bool* clickConsumed)
+{
+    const auto m =
+        App::ScreenToSurface(
+            mouse,
+            samples->GetPosition(),
+            samples->GetSize()
+            );
+        
+    if(!*clickConsumed && m.x != -1)
+    {
+        samples->Click(m);
+        *clickConsumed = true;
+    }
+        
+    const auto result = samples->Draw(projection, view, m);
+    return result;
+}
+
+AppStatus App::DrawCharacter(bool* clickConsumed)
+{
+    const auto m =
+        App::ScreenToSurface(
+            mouse,
+            character->GetPosition() * character->GetZoom(),
+            character->GetSize(), character->GetZoom()
+            );
+    
+    if(!*clickConsumed && m.x != -1)
+    {
+        character->Click(m);
+        *clickConsumed = true;
+    }
+
+    const auto result = character->Draw(projection, view, m);
+    return result;
+}
+
+AppStatus App::DrawNametable(bool* clickConsumed)
+{
+    const auto m =
+        App::ScreenToSurface(
+            mouse,
+            nametable->GetPosition() * nametable->GetZoom(),
+            nametable->GetSize(), nametable->GetZoom()
+        );
+
+    if(!*clickConsumed && m.x != -1)
+    {
+        nametable->Click(m);
+        *clickConsumed = true;
+    }
+
+    const auto result = nametable->Draw(projection, view, m);
+    return result;
 }
 
 AppStatus App::Stop()
@@ -322,6 +358,11 @@ glm::vec2 App::GetSize()
 glm::vec2 App::GetFrustumSize()
 {
     return frustumSize;
+}
+
+AppMode App::GetMode()
+{
+    return mode;
 }
 
 glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)

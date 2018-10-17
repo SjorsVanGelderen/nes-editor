@@ -30,9 +30,14 @@ public:
     static glm::vec2 GetSize();
     static glm::vec2 GetFrustumSize();
     static glm::vec2 ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom = 1.0f);
+    static AppMode   GetMode();
 
 private:
     static AppStatus Update();
+    static AppStatus DrawPalette(bool* clickConsumed);
+    static AppStatus DrawSamples(bool* clickConsumed);
+    static AppStatus DrawCharacter(bool* clickConsumed);
+    static AppStatus DrawNametable(bool* clickConsumed);
     static AppStatus Stop();
     static AppStatus StartGLFW();
     static AppStatus StartGLEW();

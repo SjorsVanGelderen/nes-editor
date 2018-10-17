@@ -53,6 +53,6 @@ void Debug::LogStatus(AppStatus status)
         break;
 
     default:
-        std::cout << "Unhandled status, can't log!" << std::endl;
+        std::cout << "Unhandled status, can't log! ID: " << status << std::endl;
     }
 }

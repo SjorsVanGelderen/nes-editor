@@ -40,11 +40,12 @@ private:
     static GLuint paletteTextureId;
     static GLint  mvpUniformId;
     static GLint  mouseUniformId;
+    static GLint  tilesUniformId;
 
     static std::vector<GLfloat>     vertices;
     static std::vector<GLuint>      indices;
     static std::vector<std::string> filenames;
-    static std::vector<GLfloat>     pixels;
+    static std::vector<GLuint>      tiles;
 
     static glm::mat4 model;
 };

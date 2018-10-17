@@ -1,13 +1,18 @@
 #include "character.h"
 
 const glm::vec2 frustumSize = App::GetFrustumSize();
+const GLfloat   aspect      = App::GetAspect();
+
 const glm::vec2 textureSize = glm::vec2(256, 128);
 
 const glm::vec2 Character::size    = glm::vec2(frustumSize.x * 2, frustumSize.x);
 const GLfloat   Character::maxZoom = 24.0f;
 
+GLfloat Character::zoom;
+GLfloat Character::nametableZoom;
+
 glm::vec3 Character::position;
-GLfloat   Character::zoom;
+glm::vec3 Character::nametablePosition;
 glm::mat4 Character::model;
 
 GLuint Character::programId;
@@ -103,19 +108,39 @@ AppStatus Character::Setup(GLuint textureId)
     mouseUniformId            = glGetUniformLocation(programId, "mouse");
     paletteTextureUniformId   = glGetUniformLocation(programId, "paletteTexture");
     characterTextureUniformId = glGetUniformLocation(programId, "characterTexture");
+
+    zoom          = 1.0f;
+    nametableZoom = 0.5f;
     
     position = glm::vec3(0.0f, 0.0f, 1.0f);
-    zoom     = 1.0f;
-    model    = glm::translate(glm::mat4(1.0f), position);
+    
+    nametablePosition =
+        glm::vec3(
+            -frustumSize.x, //+ (size.x / 2) * nametableZoom * 2,
+            -(frustumSize.y * aspect) + ((size.y * aspect) / 2) * nametableZoom,
+            1.0f
+            );
+    
+    model = glm::translate(glm::mat4(1.0f), position);
     
     return AppStatus::Success;
 }
 
 AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 {
-    model = glm::translate(glm::mat4(1.0f), glm::vec3(position.x * zoom, position.y * zoom, position.z));
+    glm::mat4 mvp;
     
-    const auto mvp          = projection * view * glm::scale(model, glm::vec3(zoom));
+    if(App::GetMode() == AppMode::CharacterMode)
+    {
+        mvp   = projection * view * glm::scale(model, glm::vec3(zoom));
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(position.x * zoom, position.y * zoom, position.z));
+    }
+    else
+    {
+        mvp   = projection * view * glm::scale(model, glm::vec3(nametableZoom));
+        model = glm::translate(glm::mat4(1.0f), nametablePosition);
+    }
+    
     const auto samples      = Samples::GetSamples();
     const auto activeSample = Samples::GetActiveSample();
     const auto activeColor  = Samples::GetActiveColor();
@@ -157,21 +182,30 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 
 bool Character::Click(glm::vec2 mouse)
 {
-    // TODO: Try to simplify this
-    const float mouseX      = (mouse.x > 0.5f ? mouse.x - 0.5f : mouse.x) * 2;
-    const uint  bankOffset  = mouse.x > 0.5f ? pow(128, 2) : 0;
-    const uint  cIndex      = bankOffset + floor(mouse.y * 128) * 128 + floor(mouseX * 128);
-    const uint  pIndex      = floor(mouse.y * textureSize.y) * textureSize.x + floor(mouse.x * textureSize.x);
-    const uint  activeColor = Samples::GetActiveColor();
-    const uint  color       = activeColor == 12 || activeColor == 24 ? 0 : activeColor % 3 + 1; // Requires review
+    const auto mode = App::GetMode();
     
-    character[cIndex] = color;
-    pixels[pIndex]    = GLubyte(255 / 3 * color);
-    
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, characterTextureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, textureSize.x, textureSize.y, 0, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
-    
+    if(mode == AppMode::CharacterMode)
+    {
+        // TODO: Try to simplify this
+        const float mouseX      = (mouse.x > 0.5f ? mouse.x - 0.5f : mouse.x) * 2;
+        const uint  bankOffset  = mouse.x > 0.5f ? pow(128, 2) : 0;
+        const uint  cIndex      = bankOffset + floor(mouse.y * 128) * 128 + floor(mouseX * 128);
+        const uint  pIndex      = floor(mouse.y * textureSize.y) * textureSize.x + floor(mouse.x * textureSize.x);
+        const uint  activeColor = Samples::GetActiveColor();
+        const uint  color       = activeColor == 12 || activeColor == 24 ? 0 : activeColor % 3 + 1; // Requires review
+        
+        character[cIndex] = color;
+        pixels[pIndex]    = GLubyte(255 / 3 * color);
+        
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, characterTextureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, textureSize.x, textureSize.y, 0, GL_RED, GL_UNSIGNED_BYTE, pixels.data());
+    }
+    else if(mode == AppMode::NametableMode)
+    {
+        
+    }
+        
     return false;
 }
 
@@ -199,7 +233,7 @@ AppStatus Character::SetCharacter(std::vector<GLubyte> newCharacter)
 }
 
 std::vector<GLubyte> Character::GetCharacter()
-{    
+{
     return character;
 }
 
@@ -210,7 +244,10 @@ std::vector<GLubyte> Character::GetPixels()
 
 void Character::Move(glm::vec2 p)
 {
-    position = position + glm::vec3(p.x, p.y, 0.0) / zoom;
+    if(App::GetMode() == AppMode::CharacterMode)
+    {
+        position = position + glm::vec3(p.x, p.y, 0.0) / zoom;
+    }
 }
 
 float Character::GetZoom()
