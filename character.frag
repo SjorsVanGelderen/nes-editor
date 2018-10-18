@@ -13,6 +13,7 @@ uniform vec2      mouse;
 uniform uint      samples[SAMPLES_SIZE];
 uniform uint      activeSample;
 uniform uint      activeColor;
+uniform uint      tool;
 uniform sampler2D paletteTexture;
 uniform sampler2D characterTexture;
 
@@ -26,6 +27,10 @@ vec2 mouseOffset =
 
 bool onHover = uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
             && uv.y >= mouseOffset.y && uv.y < mouseOffset.y + PIXEL_SIZE.y;
+
+vec2 distanceToGrid = vec2(mod(uv.x * 128.0, 4.0), mod(uv.y * 64.0, 4.0));
+
+bool onGrid = abs(distanceToGrid.x) < 0.025 || abs(distanceToGrid.y) < 0.025;
 
 void main()
 {
@@ -65,6 +70,8 @@ void main()
     
     uint attributeValue = uint(texture(characterTexture, vec2(uv.x, 1.0 - uv.y)) * 3.0);
     
-    color = onHover ? vec3(1.0, 1.0, 0.0) //colors[activeColor]
-                    : colors[attributeValue];
+    color =
+      tool == 0u && onHover ? vec3(1.0, 1.0, 0.0) //colors[activeColor]
+    : onGrid  ? vec3(1.0, 0.0, 1.0)
+    :           colors[attributeValue];
 }

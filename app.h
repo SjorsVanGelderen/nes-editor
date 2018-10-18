@@ -10,6 +10,7 @@
 
 #include "appstatus.h"
 #include "appmode.h"
+#include "tool.h"
 #include "media.h"
 #include "debug.h"
 #include "palette.h"
@@ -31,6 +32,7 @@ public:
     static glm::vec2 GetFrustumSize();
     static glm::vec2 ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom = 1.0f);
     static AppMode   GetMode();
+    static Tool      GetTool();
 
 private:
     static AppStatus Update();
@@ -49,6 +51,8 @@ private:
     static const std::string CAPTION;
 
     static AppMode mode;
+    
+    static Tool tool;
 
     static bool dragging;
     static bool canSave;

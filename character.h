@@ -10,6 +10,7 @@
 
 #include "app.h"
 #include "appstatus.h"
+#include "tool.h"
 #include "media.h"
 #include "palette.h"
 #include "offset.h"
@@ -49,13 +50,15 @@ private:
     static GLuint indexBufferId;
     static GLuint paletteTextureId;
     static GLuint characterTextureId;
-    static GLint  mvpUniformId;
-    static GLint  mouseUniformId;
-    static GLint  samplesUniformId;
-    static GLint  activeSampleUniformId;
-    static GLint  activeColorUniformId;
-    static GLint  paletteTextureUniformId;
-    static GLint  characterTextureUniformId;
+    
+    static GLint mvpUniformId;
+    static GLint mouseUniformId;
+    static GLint samplesUniformId;
+    static GLint activeSampleUniformId;
+    static GLint activeColorUniformId;
+    static GLint toolUniformId;
+    static GLint paletteTextureUniformId;
+    static GLint characterTextureUniformId;
     
     static std::vector<GLfloat>     vertices;
     static std::vector<GLuint>      indices;

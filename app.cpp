@@ -4,6 +4,8 @@ const std::string App::CAPTION = "NES editor";
 
 AppMode App::mode = AppMode::CharacterMode;
 
+Tool App::tool = Tool::Pixel; // Tool::RectangleFrame;
+
 bool App::dragging = false;
 bool App::canSave  = true;
 bool App::canLoad  = true;
@@ -363,6 +365,11 @@ glm::vec2 App::GetFrustumSize()
 AppMode App::GetMode()
 {
     return mode;
+}
+
+Tool App::GetTool()
+{
+    return tool;
 }
 
 glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
