@@ -4,21 +4,22 @@ const std::string App::CAPTION = "NES editor";
 
 AppMode App::mode = AppMode::CharacterMode;
 
-Tool App::tool = Tool::Pixel; // Tool::RectangleFrame;
-
+Tool App::tool     = Tool::Pixel;
 bool App::dragging = false;
+bool App::plotting = false;
 bool App::canSave  = true;
 bool App::canLoad  = true;
 bool App::newClick = false;
 
-glm::vec2 App::mouse = glm::vec2(0, 0);
-glm::vec2 App::click = glm::vec2(0, 0);
-
-GLuint App::vaoId;
+glm::vec2 App::mouse     = glm::vec2(0, 0);
+glm::vec2 App::click     = glm::vec2(0, 0);
+glm::vec2 App::plotStart = glm::vec2(-1, -1);
 
 glm::vec2 App::size        = glm::uvec2(960, 720);
 glm::vec2 App::frustumSize = glm::uvec2(50, 50);
 GLfloat   App::aspect      = (float)App::size.y / (float)App::size.x;
+
+GLuint App::vaoId;
 
 glm::mat4 App::projection = glm::ortho(
     -frustumSize.x,
@@ -92,6 +93,11 @@ AppStatus App::Start()
         if(result != AppStatus::Success) return result;
     }
 
+    return Update();
+}
+
+AppStatus App::Update()
+{
     auto w = window.get();
     
     while(
@@ -99,110 +105,124 @@ AppStatus App::Start()
         && glfwGetKey(window.get(), GLFW_KEY_ESCAPE) != GLFW_PRESS
         )
     {
-        
-        dragging = glfwGetKey(w, GLFW_KEY_SPACE) == GLFW_PRESS;
-
-        if(glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
+        // Keyboard input
         {
-            if(canSave)
+            // Process dragging input
+            dragging = glfwGetKey(w, GLFW_KEY_SPACE) == GLFW_PRESS;
+
+            // Process save commands
+            if(glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
             {
-                canSave = false;
-                Media::SaveCharacter();
+                if(canSave)
+                {
+                    canSave = false;
+                    Media::SaveCharacter();
+                }
+            }
+            else if(glfwGetKey(w, GLFW_KEY_Z) == GLFW_PRESS)
+            {
+                if(canSave)
+                {
+                    canSave = false;
+                    Media::SaveSamples();
+                }
+            }
+            else
+            {
+                canSave = true;
+            }
+
+            // Process load commands
+            if(glfwGetKey(w, GLFW_KEY_L) == GLFW_PRESS)
+            {
+                if(canLoad)
+                {
+                    canLoad = false;
+                    Media::LoadCharacter();
+                }
+            }
+            else if(glfwGetKey(w, GLFW_KEY_X) == GLFW_PRESS)
+            {                
+                if(canLoad)
+                {
+                    canLoad = false;
+                    Media::LoadSamples();
+                }
+            }
+            else
+            {
+                canLoad = true;
+            }
+
+            // Process mode switch command
+            if(glfwGetKey(w, GLFW_KEY_1) == GLFW_PRESS)
+            {
+                mode = AppMode::CharacterMode;
+            }
+            else if(glfwGetKey(w, GLFW_KEY_2) == GLFW_PRESS)
+            {
+                mode = AppMode::NametableMode;
+            }
+            else if(glfwGetKey(w, GLFW_KEY_3) == GLFW_PRESS)
+            {
+                mode = AppMode::AttributeTableMode;
             }
         }
-        else
-        {
-            canSave = true;
-        }
-        
-        if(glfwGetKey(w, GLFW_KEY_L) == GLFW_PRESS)
-        {
-            if(canLoad)
-            {
-                canLoad = false;
-                Media::LoadCharacter();
-            }
-        }
-        else
-        {
-            canLoad = true;
-        }
 
-        if(glfwGetKey(w, GLFW_KEY_1) == GLFW_PRESS)
+        if(glfwGetWindowAttrib(window.get(), GLFW_FOCUSED))
         {
-            mode = AppMode::CharacterMode;
-        }
-        else if(glfwGetKey(w, GLFW_KEY_2) == GLFW_PRESS)
-        {
-            mode = AppMode::NametableMode;
-        }
-        else if(glfwGetKey(w, GLFW_KEY_3) == GLFW_PRESS)
-        {
-            mode = AppMode::AttributeTableMode;
-        }
-        
-        const auto result = Update();
-        if(result != AppStatus::Success) return result;
-    }
+            bool clickConsumed = !newClick;
+            
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            switch(mode)
+            {
+            case AppMode::CharacterMode:
+            {
+                const auto result = UpdatePalette(&clickConsumed);
+                if(result != AppStatus::Success) return result;
+            }
+
+            {
+                const auto result = UpdateSamples(&clickConsumed);
+                if(result != AppStatus::Success) return result;
+            }
+
+            {
+                const auto result = UpdateCharacter(&clickConsumed);
+                if(result != AppStatus::Success) return result;
+            }
+            break;
+
+            case AppMode::NametableMode:
+            {
+                const auto result = UpdateNametable(&clickConsumed);
+                if(result != AppStatus::Success) return result;
+            }
+
+            {
+                const auto result = UpdateCharacter(&clickConsumed);
+                if(result != AppStatus::Success) return result;
+            }
+            break;
+
+            case AppMode::AttributeTableMode:
+                break;
+
+            default:
+                break;
+            }
     
+            glfwSwapBuffers(window.get());
+        }
+    
+        glfwPollEvents();
+    }
+
     return Stop();
 }
 
-AppStatus App::Update()
-{
-    if(glfwGetWindowAttrib(window.get(), GLFW_FOCUSED))
-    {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        bool clickConsumed = !newClick;
-
-        switch(mode)
-        {
-        case AppMode::CharacterMode:
-        {
-            const auto result = DrawPalette(&clickConsumed);
-            if(result != AppStatus::Success) return result;
-        }
-
-        {
-            const auto result = DrawSamples(&clickConsumed);
-            if(result != AppStatus::Success) return result;
-        }
-
-        {
-            const auto result = DrawCharacter(&clickConsumed);
-            if(result != AppStatus::Success) return result;
-        }
-        break;
-
-        case AppMode::NametableMode:
-        {
-            const auto result = DrawNametable(&clickConsumed);
-            if(result != AppStatus::Success) return result;
-        }
-
-        {
-            const auto result = DrawCharacter(&clickConsumed);
-            if(result != AppStatus::Success) return result;
-        }
-        break;
-
-        case AppMode::AttributeTableMode:
-            break;
-
-        default:
-            break;
-        }
-    
-        glfwSwapBuffers(window.get());
-    }
-    
-    glfwPollEvents();
-
-    return AppStatus::Success;
-}
-
-AppStatus App::DrawPalette(bool* clickConsumed)
+AppStatus App::UpdatePalette(bool* clickConsumed)
 {
     const auto m = App::ScreenToSurface(mouse, palette->GetPosition(), palette->GetSize());
                 
@@ -211,12 +231,12 @@ AppStatus App::DrawPalette(bool* clickConsumed)
         palette->Click(m);
         *clickConsumed = true;
     }
-        
+    
     const auto result = palette->Draw(projection, view, m);
     return result;
 }
 
-AppStatus App::DrawSamples(bool* clickConsumed)
+AppStatus App::UpdateSamples(bool* clickConsumed)
 {
     const auto m =
         App::ScreenToSurface(
@@ -235,7 +255,7 @@ AppStatus App::DrawSamples(bool* clickConsumed)
     return result;
 }
 
-AppStatus App::DrawCharacter(bool* clickConsumed)
+AppStatus App::UpdateCharacter(bool* clickConsumed)
 {
     const auto m =
         App::ScreenToSurface(
@@ -254,7 +274,7 @@ AppStatus App::DrawCharacter(bool* clickConsumed)
     return result;
 }
 
-AppStatus App::DrawNametable(bool* clickConsumed)
+AppStatus App::UpdateNametable(bool* clickConsumed)
 {
     const auto m =
         App::ScreenToSurface(
@@ -271,16 +291,6 @@ AppStatus App::DrawNametable(bool* clickConsumed)
 
     const auto result = nametable->Draw(projection, view, m);
     return result;
-}
-
-AppStatus App::Stop()
-{
-    const GLuint vaoIds[] { vaoId };
-    glDeleteVertexArrays(1, vaoIds);
-
-    glfwTerminate();
-    
-    return AppStatus::Success;
 }
 
 AppStatus App::StartGLFW()
@@ -347,6 +357,16 @@ AppStatus App::StartGL()
     return AppStatus::Success;
 }
 
+AppStatus App::Stop()
+{
+    const GLuint vaoIds[] { vaoId };
+    glDeleteVertexArrays(1, vaoIds);
+
+    glfwTerminate();
+    
+    return AppStatus::Success;
+}
+
 GLfloat App::GetAspect()
 {
     return aspect;
@@ -370,6 +390,16 @@ AppMode App::GetMode()
 Tool App::GetTool()
 {
     return tool;
+}
+
+glm::vec2 App::GetPlotStart()
+{
+    return plotStart;
+}
+
+bool App::GetPlotting()
+{
+    return plotting;
 }
 
 glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
@@ -435,12 +465,27 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
     {
         if(action == GLFW_PRESS)
         {
-            click    = mouse;
             newClick = true;
+            click    = mouse;
+
+            switch(tool)
+            {
+            case Tool::RectangleFrame:
+            case Tool::RectangleFill:
+            case Tool::CircleFrame:
+            case Tool::CircleFill:
+                plotStart = click;
+                plotting = true;
+                break;
+
+            default:
+                break;
+            }
         }
         else if(action == GLFW_RELEASE)
         {
             newClick = false;
+            plotting = false;
         }
     }
 }

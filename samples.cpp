@@ -158,7 +158,7 @@ glm::vec2 Samples::GetSize()
     return size;
 }
 
-void Samples::SetColor(GLuint paletteIndex)
+void Samples::SetColor(GLubyte paletteIndex)
 {
     (*samples)[activeColor] = paletteIndex;
 }
@@ -171,6 +171,11 @@ GLuint Samples::GetActiveSample()
 GLuint Samples::GetActiveColor()
 {
     return activeColor;
+}
+
+void Samples::SetSamples(std::vector<GLuint> newSamples)
+{
+    samples = std::make_shared<std::vector<GLuint>>(newSamples);
 }
 
 std::shared_ptr<std::vector<GLuint>> Samples::GetSamples()

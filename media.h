@@ -21,10 +21,11 @@ class Media
 public:
     static std::pair<AppStatus, GLuint> LoadShaderProgram(std::vector<std::string> filenames);
     
-    static std::pair<AppStatus, std::vector<GLubyte>> LoadSamples();
+    // static std::pair<AppStatus, std::vector<GLubyte>> LoadSamples();
     // static std::pair<AppStatus, std::vector<GLubyte>> LoadCharacter();
     
     static AppStatus SaveSamples();
+    static AppStatus LoadSamples();
     static AppStatus SaveCharacter();
     static AppStatus LoadCharacter();
 

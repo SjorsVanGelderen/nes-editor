@@ -22,13 +22,13 @@ public:
     static AppStatus Setup(GLuint textureId);
     static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
     static bool      Click(glm::vec2 mouse);
+    static void      Move(glm::vec2 p);
+    static void      Zoom(GLfloat x);
+    static float     GetZoom();
     static glm::vec2 GetPosition();
     static glm::vec2 GetSize();
-    static void      Move(glm::vec2 p);
-    static float     GetZoom();
-    static void      Zoom(GLfloat x);
+    static AppStatus SetCharacter(std::vector<GLubyte> character);
 
-    static AppStatus            SetCharacter(std::vector<GLubyte> character);
     static std::vector<GLubyte> GetCharacter();
     static std::vector<GLubyte> GetPixels();
 
@@ -57,6 +57,8 @@ private:
     static GLint activeSampleUniformId;
     static GLint activeColorUniformId;
     static GLint toolUniformId;
+    static GLint plottingUniformId;
+    static GLint plotStartUniformId;
     static GLint paletteTextureUniformId;
     static GLint characterTextureUniformId;
     

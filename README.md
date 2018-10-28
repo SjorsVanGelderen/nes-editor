@@ -9,9 +9,13 @@ This project is still in an early stage. Currently, the editor allows loading, e
 
 The full NES palette is available, and during editing the palette is constrained so as to discourage graphics the NES can't actually render.
 
+This editor aims to replace [YY-CHR](http://www.geocities.jp/yy_6502/yychr/index.html) at least for NES graphics.
+
 ## Next priorities
 
 * More drawing tools
+* Selecting and sliding
+* Cutting / copying and pasting
 * Specify file to load
 * Specify file to save
 * Implement toggle-able grid

@@ -14,6 +14,8 @@ uniform uint      samples[SAMPLES_SIZE];
 uniform uint      activeSample;
 uniform uint      activeColor;
 uniform uint      tool;
+uniform vec2      plotStart;
+uniform bool      plotting;
 uniform sampler2D paletteTexture;
 uniform sampler2D characterTexture;
 
@@ -31,6 +33,26 @@ bool onHover = uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
 vec2 distanceToGrid = vec2(mod(uv.x * 128.0, 4.0), mod(uv.y * 64.0, 4.0));
 
 bool onGrid = abs(distanceToGrid.x) < 0.025 || abs(distanceToGrid.y) < 0.025;
+
+vec2 plotCenter = plotStart + (mouse - plotStart) / 2;
+
+// Should draw only on pixels, too free now
+bool onRectangleFrame =
+       abs(uv.x - plotCenter.x) < abs(mouse.x - plotCenter.x)
+    && abs(uv.y - plotCenter.y) < abs(mouse.y - plotCenter.y)
+    && ( abs(uv.x - plotStart.x) < PIXEL_SIZE.x
+      || abs(uv.x - mouse.x)     < PIXEL_SIZE.x
+      || abs(uv.y - plotStart.y) < PIXEL_SIZE.y
+      || abs(uv.y - mouse.y)     < PIXEL_SIZE.y
+       );
+
+float rad = length(mouse.x - plotCenter.x) / 2.0;
+
+bool onCircleFrame =
+       abs(uv.x - plotCenter.x) / 2.0 < rad
+    && abs(uv.y - plotCenter.y)       < rad;
+
+    // length(uv - plotCenter) < length(mouse - plotCenter);g
 
 void main()
 {
@@ -71,7 +93,20 @@ void main()
     uint attributeValue = uint(texture(characterTexture, vec2(uv.x, 1.0 - uv.y)) * 3.0);
     
     color =
-      tool == 0u && onHover ? vec3(1.0, 1.0, 0.0) //colors[activeColor]
-    : onGrid  ? vec3(1.0, 0.0, 1.0)
-    :           colors[attributeValue];
+        tool == 0u && onHover
+          ? vec3(1.0, 1.0, 0.0) //colors[activeColor]
+        : tool == 2u // RectangleFrame
+       && plotting
+        && onCircleFrame // onRectangleFrame
+          ? vec3(1.0, 1.0, 0.0)
+        : tool == 3u // RectangleFill
+       && plotting
+       && uv.x >= plotStart.x
+       && uv.x <  mouse.x
+       && uv.y >= plotStart.y
+       && uv.y <  mouse.y
+          ? vec3(1.0, 1.0, 0.0)
+        : onGrid
+          ? vec3(1.0, 0.0, 1.0)
+        : colors[attributeValue];
 }

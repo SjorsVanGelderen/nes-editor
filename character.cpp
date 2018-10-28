@@ -27,6 +27,8 @@ GLint Character::samplesUniformId;
 GLint Character::activeSampleUniformId;
 GLint Character::activeColorUniformId;
 GLint Character::toolUniformId;
+GLint Character::plotStartUniformId;
+GLint Character::plottingUniformId;
 GLint Character::paletteTextureUniformId;
 GLint Character::characterTextureUniformId;
 
@@ -107,6 +109,8 @@ AppStatus Character::Setup(GLuint textureId)
     activeSampleUniformId     = glGetUniformLocation(programId, "activeSample");
     activeColorUniformId      = glGetUniformLocation(programId, "activeColor");
     toolUniformId             = glGetUniformLocation(programId, "tool");
+    plotStartUniformId        = glGetUniformLocation(programId, "plotStart");
+    plottingUniformId         = glGetUniformLocation(programId, "plotting");
     mouseUniformId            = glGetUniformLocation(programId, "mouse");
     paletteTextureUniformId   = glGetUniformLocation(programId, "paletteTexture");
     characterTextureUniformId = glGetUniformLocation(programId, "characterTexture");
@@ -147,6 +151,13 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     const auto activeSample = Samples::GetActiveSample();
     const auto activeColor  = Samples::GetActiveColor();
 
+    // Zoom is still wrong
+    const auto plotStart           = App::GetPlotStart();
+    const auto normalizedPlotStart = glm::vec2(
+        (plotStart.x + size.x / 2.0f) / size.x,
+        1.0f - (plotStart.y + size.y / 2.0f) / size.y
+        );
+
     mouse.y = 1.0f - mouse.y;
     
     glUseProgram(programId);
@@ -157,6 +168,8 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     glUniform1ui(activeSampleUniformId, activeSample);
     glUniform1ui(activeColorUniformId, activeColor);
     glUniform1ui(toolUniformId, App::GetTool());
+    glUniform2fv(plotStartUniformId, 1, &normalizedPlotStart[0]);
+    glUniform1ui(plottingUniformId, App::GetPlotting());
     glUniform1i(paletteTextureUniformId, 0);
     glUniform1i(characterTextureUniformId, 1);
 
@@ -211,7 +224,7 @@ bool Character::Click(glm::vec2 mouse)
         }
         else if(tool == Tool::RectangleFrame)
         {
-            std::cout << "rect" << std::endl;
+            
         }
     }
     else if(mode == AppMode::NametableMode)

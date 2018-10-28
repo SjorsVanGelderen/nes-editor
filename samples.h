@@ -23,9 +23,10 @@ public:
     static bool      Click(glm::vec2 mouse);
     static glm::vec2 GetPosition();
     static glm::vec2 GetSize();
-    static void      SetColor(GLuint paletteIndex);
+    static void      SetColor(GLubyte paletteIndex);
     static GLuint    GetActiveSample(); 
     static GLuint    GetActiveColor();
+    static void      SetSamples(std::vector<GLuint> newSamples);
     
     static std::shared_ptr<std::vector<GLuint>> GetSamples();
 

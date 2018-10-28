@@ -112,13 +112,56 @@ std::pair<AppStatus, GLuint> Media::LoadShader(std::string filename)
     return std::make_pair(AppStatus::Success, shaderId);
 }
 
-std::pair<AppStatus, std::vector<GLubyte>> Media::LoadSamples()
-{
-    return std::make_pair(AppStatus::Success, std::vector<GLubyte>());
-}
+// std::pair<AppStatus, std::vector<GLubyte>> Media::LoadSamples()
+// {
+//     return std::make_pair(AppStatus::Success, std::vector<GLubyte>());
+// }
 
 AppStatus Media::SaveSamples()
 {
+    auto samples = Samples::GetSamples();
+
+    std::ofstream file("samples.sam", std::ios::out | std::ios::binary | std::ios::trunc);
+
+    if(!file.is_open()) return AppStatus::Success;
+
+    std::cout << "Writing samples to file..." << std::endl;
+
+    for(const auto &sample : *samples)
+    {
+        file.write((char*)&sample, sizeof(uint8_t));
+    }
+
+    std::cout << std::endl << "Finished writing sample file!" << std::endl;
+
+    file.close();
+    
+    return AppStatus::Success;
+}
+
+AppStatus Media::LoadSamples()
+{
+    std::vector<GLuint> samples;
+
+    std::ifstream file("samples.sam", std::ios::in | std::ios::binary);
+
+    if(!file.is_open()) return AppStatus::Success;
+
+    std::cout << "Reading samples from file..." << std::endl;
+
+    uint8_t sample = 0x00;
+    
+    while(file.read((char*)&sample, 1))
+    {
+        samples.push_back(sample);
+    }
+
+    std::cout << "Finished reading samples from file!" << std::endl;
+    
+    file.close();
+
+    Samples::SetSamples(std::move(samples));
+
     return AppStatus::Success;
 }
 
@@ -144,11 +187,11 @@ AppStatus Media::SaveCharacter()
                 
                 for(auto pass = 0; pass < 2; pass++) // Two passes to register color bits
                 {
-                    for(int y = 0; y < 8; y++) // 8 rows per tile
+                    for(auto y = 0; y < 8; y++) // 8 rows per tile
                     {
                         uint8_t row = 0x00; // Byte buffer
                         
-                        for(int x = 0; x < 8; x++) // 8 columns per tile
+                        for(auto x = 0; x < 8; x++) // 8 columns per tile
                         {
                             const auto p = bo + to + y * 128 + x;
 
