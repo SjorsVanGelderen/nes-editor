@@ -230,7 +230,6 @@ AppStatus App::UpdatePalette(bool* clickConsumed)
                 
     if(!*clickConsumed && m.x != -1)
     {
-        std::cout << "palette" << std::endl;
         palette->Click(m);
         *clickConsumed = true;
     }
