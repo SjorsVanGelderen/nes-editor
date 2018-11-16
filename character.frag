@@ -19,8 +19,6 @@ uniform bool      plotting;
 uniform sampler2D paletteTexture;
 uniform sampler2D characterTexture;
 
-uint sampleOffset = activeSample * 3u;
-
 vec2 mouseOffset =
     vec2(
         floor(mouse.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x,
@@ -52,7 +50,11 @@ bool onCircleFrame =
        abs(uv.x - plotCenter.x) / 2.0 < rad
     && abs(uv.y - plotCenter.y)       < rad;
 
-    // length(uv - plotCenter) < length(mouse - plotCenter);g
+    // length(uv - plotCenter) < length(mouse - plotCenter);
+
+uint sampleOffset    = activeSample > 3u ? 13u : 0u;
+uint sampleIndex     = sampleOffset + uint(mod(activeSample, 4u)) * 3u;
+uint backgroundIndex = activeSample > 3u ? 25u : 12u;
 
 void main()
 {
@@ -61,35 +63,36 @@ void main()
     colors[0] =
         texture(paletteTexture,
                 vec2(
-                    mod(samples[SAMPLES_SIZE - 1u], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
-                    floor(samples[SAMPLES_SIZE - 1u] / PALETTE_SIZE.x) / PALETTE_SIZE.y
+                    mod(samples[backgroundIndex], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
+                    floor(samples[backgroundIndex] / PALETTE_SIZE.x) / PALETTE_SIZE.y
                     )
             ).xyz;
     
     colors[1] =
         texture(paletteTexture,
                 vec2(
-                    mod(samples[sampleOffset], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
-                    floor(samples[sampleOffset] / PALETTE_SIZE.x) / PALETTE_SIZE.y
+                    mod(samples[sampleIndex], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
+                    floor(samples[sampleIndex] / PALETTE_SIZE.x) / PALETTE_SIZE.y
                     )
             ).xyz;
     
     colors[2] =
         texture(paletteTexture,
                 vec2(
-                    mod(samples[sampleOffset + 1u], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
-                    floor(samples[sampleOffset + 1u] / PALETTE_SIZE.x) / PALETTE_SIZE.y
+                    mod(samples[sampleIndex + 1u], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
+                    floor(samples[sampleIndex + 1u] / PALETTE_SIZE.x) / PALETTE_SIZE.y
                     )
             ).xyz;
     
     colors[3] =
         texture(paletteTexture,
                 vec2(
-                    mod(samples[sampleOffset + 2u], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
-                    floor(samples[sampleOffset + 2u] / PALETTE_SIZE.x) / PALETTE_SIZE.y
+                    mod(samples[sampleIndex + 2u], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
+                    floor(samples[sampleIndex + 2u] / PALETTE_SIZE.x) / PALETTE_SIZE.y
                     )
             ).xyz;
-    
+
+    // Translate character tone to color index
     uint attributeValue = uint(texture(characterTexture, vec2(uv.x, 1.0 - uv.y)) * 3.0);
     
     color =
@@ -109,4 +112,11 @@ void main()
         : onGrid
           ? vec3(1.0, 0.0, 1.0)
         : colors[attributeValue];
+
+    // color = texture(paletteTexture,
+    //         vec2(
+    //             mod(samples[sampleIndex], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
+    //             floor(samples[sampleIndex] / PALETTE_SIZE.x) / PALETTE_SIZE.y
+    //             )
+    //     ).xyz;
 }

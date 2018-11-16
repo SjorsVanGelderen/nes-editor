@@ -147,10 +147,10 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
         model = glm::translate(glm::mat4(1.0f), nametablePosition);
     }
     
-    const auto samples      = Samples::GetSamples();
+    const auto samples      = Samples::GetSamples();    
     const auto activeSample = Samples::GetActiveSample();
     const auto activeColor  = Samples::GetActiveColor();
-
+    
     // Zoom is still wrong
     const auto plotStart           = App::GetPlotStart();
     const auto normalizedPlotStart = glm::vec2(

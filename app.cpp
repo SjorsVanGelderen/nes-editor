@@ -4,7 +4,9 @@ const std::string App::CAPTION = "NES editor";
 
 AppMode App::mode = AppMode::CharacterMode;
 
-Tool App::tool     = Tool::Pixel;
+Tool App::tool = Tool::Pixel;
+
+// These can surely be improved
 bool App::dragging = false;
 bool App::plotting = false;
 bool App::canSave  = true;
@@ -170,7 +172,7 @@ AppStatus App::Update()
         }
 
         if(glfwGetWindowAttrib(window.get(), GLFW_FOCUSED))
-        {
+        {            
             bool clickConsumed = !newClick;
             
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -228,6 +230,7 @@ AppStatus App::UpdatePalette(bool* clickConsumed)
                 
     if(!*clickConsumed && m.x != -1)
     {
+        std::cout << "palette" << std::endl;
         palette->Click(m);
         *clickConsumed = true;
     }
@@ -250,7 +253,7 @@ AppStatus App::UpdateSamples(bool* clickConsumed)
         samples->Click(m);
         *clickConsumed = true;
     }
-        
+    
     const auto result = samples->Draw(projection, view, m);
     return result;
 }
@@ -367,6 +370,21 @@ AppStatus App::Stop()
     return AppStatus::Success;
 }
 
+glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
+{
+    position.y = -position.y;
+    
+    const auto dist   = glm::vec2(point.x - position.x, point.y - position.y);
+
+    return abs(dist.x) < (size.x / 2) * zoom
+        && abs(dist.y) < (size.y / 2) * zoom
+         ? glm::vec2(
+             (dist.x + (size.x * zoom) / 2) / (size.x * zoom),
+             (dist.y + (size.y * zoom) / 2) / (size.y * zoom)
+             )
+         : glm::vec2(-1, -1);
+}
+
 GLfloat App::GetAspect()
 {
     return aspect;
@@ -400,21 +418,6 @@ glm::vec2 App::GetPlotStart()
 bool App::GetPlotting()
 {
     return plotting;
-}
-
-glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
-{
-    position.y = -position.y;
-    
-    const auto dist   = glm::vec2(point.x - position.x, point.y - position.y);
-
-    return abs(dist.x) < (size.x / 2) * zoom
-        && abs(dist.y) < (size.y / 2) * zoom
-         ? glm::vec2(
-             (dist.x + (size.x * zoom) / 2) / (size.x * zoom),
-             (dist.y + (size.y * zoom) / 2) / (size.y * zoom)
-             )
-         : glm::vec2(-1, -1);
 }
 
 void App::GLFWCursorPositionCallback(GLFWwindow* window, double mX, double mY)

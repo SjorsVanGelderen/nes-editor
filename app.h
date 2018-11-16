@@ -10,6 +10,7 @@
 
 #include "appstatus.h"
 #include "appmode.h"
+#include "interactionmode.h"
 #include "tool.h"
 #include "media.h"
 #include "debug.h"
@@ -27,6 +28,7 @@ class App
 {
 public:
     static AppStatus Start();
+    static glm::vec2 ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom = 1.0f);
     static AppMode   GetMode();
     static Tool      GetTool();
     static bool      GetPlotting();
@@ -34,7 +36,6 @@ public:
     static GLfloat   GetAspect();
     static glm::vec2 GetSize();
     static glm::vec2 GetFrustumSize();
-    static glm::vec2 ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom = 1.0f);
 
 private:
     static AppStatus StartGLFW();
@@ -52,13 +53,15 @@ private:
     
     static const std::string CAPTION;
 
-    static AppMode mode;
-    static Tool    tool;
-    static bool    dragging;
-    static bool    plotting;
-    static bool    canSave;
-    static bool    canLoad;
-    static bool    newClick;
+    static AppMode         mode;
+    static InteractionMode interactionMode;
+    
+    static Tool tool;
+    static bool dragging;
+    static bool plotting;
+    static bool canSave;
+    static bool canLoad;
+    static bool newClick;
     
     static glm::vec2 mouse;
     static glm::vec2 click;
