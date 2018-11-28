@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-c -Wall -std=c++17
-LDFLAGS=-framework OpenGL -lglfw -lGLEW
+LDFLAGS=-framework OpenGL -lglfw -lGLEW -lIL -lILU
 SOURCES=           \
 main.cpp           \
 app.cpp            \
@@ -9,7 +9,8 @@ debug.cpp          \
 palette.cpp        \
 samples.cpp        \
 character.cpp      \
-nametable.cpp
+nametable.cpp      \
+button.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=app
 

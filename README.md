@@ -1,16 +1,16 @@
-
 # NES editor
 
-![Screenshot of the editor](/screenshot.png?raw=true)
-
-![Another screenshot of the editor](/screenshot2.png?raw=true)
+![Screenshot of the editor](/assets/screenshot3.png?raw=true)
 
 ## Introduction
+
 This project is still in an early stage. Currently, the editor allows loading, editing and saving of `.chr` files. It has only been tested with graphics extracted from a `Super Mario Bros.` `ROM` file. The project has only been tested on `MacOS High Sierra`.
 
 The full NES palette is available, and during editing the palette is constrained so as to discourage graphics the NES can't actually render.
 
 This editor aims to replace [YY-CHR](http://www.geocities.jp/yy_6502/yychr/index.html) at least for NES graphics.
+
+![Another screenshot of the editor](/assets/screenshot2.png?raw=true)
 
 ## Next priorities
 
@@ -20,11 +20,13 @@ This editor aims to replace [YY-CHR](http://www.geocities.jp/yy_6502/yychr/index
 * Specify file to load
 * Specify file to save
 * Implement toggle-able grid
-* Using different patterns
+* Using different character data patterns
 * Allow specifying and saving meta-sprites
 * Implement nametable editor (including meta-tiles)
 * Implement attribute-table editor
 * Support for other operating systems (`Windows`, `Linux`, possibly `BSD`)
+
+![Yet another screenshot of the editor](/assets/screenshot.png?raw=true)
 
 ## Controls
 
@@ -36,4 +38,5 @@ This editor aims to replace [YY-CHR](http://www.geocities.jp/yy_6502/yychr/index
 * Scroll -> zoom
 
 ## Technical details
+
 The editor is written in `C++` using `Emacs`. A `Makefile` is supplied, so running `make` from this folder should compile the project for you. The project uses `GLFW` and `OpenGL 3.2`.

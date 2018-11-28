@@ -9,6 +9,8 @@ enum AppStatus
     FailureShaderLoad,
     FailureShaderProgramLoad,
     FailureSampleSet,
+    FailureTextureLoad,
+    FailureDevILStart,
     Success
 };
 

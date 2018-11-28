@@ -18,18 +18,21 @@
 #include "samples.h"
 #include "character.h"
 #include "nametable.h"
+#include "button.h"
+#include "idrawable.h"
 
 class Palette;
 class Samples;
 class Character;
 class Nametable;
+class Button;
 
 class App
 {
-public:
+  public:
     static AppStatus Start();
-    static glm::vec2 ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom = 1.0f);
-    static AppMode   GetMode();
+    
+    static AppMode   GetMode();    
     static Tool      GetTool();
     static bool      GetPlotting();
     static glm::vec2 GetPlotStart();
@@ -37,19 +40,44 @@ public:
     static glm::vec2 GetSize();
     static glm::vec2 GetFrustumSize();
 
-private:
+    static glm::vec2 ScreenToSurface(
+        glm::vec2 point,
+        glm::vec2 position,
+        glm::vec2 size, float zoom = 1.0f
+        );
+
+  private:
     static AppStatus StartGLFW();
     static AppStatus StartGLEW();
     static AppStatus StartGL();
-    static AppStatus Update();
     static AppStatus Stop();
-    static AppStatus UpdatePalette(bool* clickConsumed);
-    static AppStatus UpdateSamples(bool* clickConsumed);
-    static AppStatus UpdateCharacter(bool* clickConsumed);
-    static AppStatus UpdateNametable(bool* clickConsumed);
-    static void      GLFWCursorPositionCallback(GLFWwindow* window, double mouseX, double mouseY);
-    static void      GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mode);
-    static void      GLFWScrollCallback(GLFWwindow* window, double offsetX, double offsetY);
+    
+    static AppStatus Update();
+    
+    static AppStatus UpdateDrawable
+        ( bool* clickConsumed
+        , std::shared_ptr<IDrawable> drawable
+        , bool zoomable = false
+        );
+    
+    static void GLFWCursorPositionCallback(
+        GLFWwindow* window,
+        double mouseX,
+        double mouseY
+        );
+    
+    static void GLFWMouseButtonCallback(
+        GLFWwindow* window,
+        int button,
+        int action,
+        int mode
+        );
+    
+    static void GLFWScrollCallback(
+        GLFWwindow* window,
+        double offsetX,
+        double offsetY
+        );
     
     static const std::string CAPTION;
 
@@ -69,17 +97,26 @@ private:
 
     static glm::vec2 size;
     static glm::vec2 frustumSize;
-    static GLfloat   aspect;
     static glm::mat4 projection;
     static glm::mat4 view;
-    static GLuint    vaoId;
+    static GLfloat   aspect;
+    
+    static GLuint vaoId;
 
     static std::unique_ptr<Palette>   palette;
     static std::unique_ptr<Samples>   samples;
     static std::unique_ptr<Character> character;
     static std::unique_ptr<Nametable> nametable;
+
+    static std::shared_ptr<Button> buttonPencil;
+    static std::shared_ptr<Button> buttonLine;
+    static std::shared_ptr<Button> buttonRectangle;
+    static std::shared_ptr<Button> buttonEllipse;
+    static std::shared_ptr<Button> buttonAbout;
+    static std::shared_ptr<Button> buttonSave;
+    static std::shared_ptr<Button> buttonLoad;
     
-    static std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> window;
+    static GLFWwindow* window;
 };
 
 #endif

@@ -14,19 +14,27 @@
 #include "media.h"
 #include "palette.h"
 #include "offset.h"
+#include "idrawable.h"
+
+struct CharacterDrawable;
 
 class Character
 {
 public:
-    ~Character();
-    static AppStatus Setup(GLuint textureId);
+    static AppStatus Start(GLuint textureId);
+    static AppStatus Stop();
     static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
-    static bool      Click(glm::vec2 mouse);
-    static void      Move(glm::vec2 p);
-    static void      Zoom(GLfloat x);
+
+    static bool Click(glm::vec2 mouse);
+    static void Move(glm::vec2 p);
+    static void Zoom(GLfloat x);
+
     static float     GetZoom();
     static glm::vec2 GetPosition();
     static glm::vec2 GetSize();
+
+    static std::shared_ptr<IDrawable> GetDrawable();
+
     static AppStatus SetCharacter(std::vector<GLubyte> character);
 
     static std::vector<GLubyte> GetCharacter();
@@ -67,6 +75,33 @@ private:
     static std::vector<std::string> filenames;
     static std::vector<GLubyte>     character;
     static std::vector<GLubyte>     pixels;
+
+    static std::shared_ptr<CharacterDrawable> drawable;
+};
+
+struct CharacterDrawable : public IDrawable
+{
+    CharacterDrawable() : IDrawable() {}
+
+    AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse) override
+    {
+        return Character::Draw(projection, view, mouse);
+    }
+
+    glm::vec2 GetPosition() override
+    { 
+        return Character::GetPosition();
+    }
+
+    glm::vec2 GetSize() override
+    {
+        return Character::GetSize();
+    }
+
+    bool Click(glm::vec2 mouse) override
+    {
+        return Character::Click(mouse);
+    }
 };
 
 #endif

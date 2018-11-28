@@ -24,17 +24,7 @@ std::vector<GLuint>      Nametable::tiles;
 
 glm::mat4 Nametable::model;
 
-Nametable::~Nametable()
-{
-    // GLuint textureIds[] = {};
-    GLuint bufferIds[]  = { vertexBufferId, indexBufferId };
-
-    // glDeleteTextures(1, textureIds);
-    glDeleteBuffers(2, bufferIds);
-    glDeleteProgram(programId);
-}
-
-AppStatus Nametable::Setup(GLuint textureId)
+AppStatus Nametable::Start(GLuint textureId)
 {
     vertices = {
         -size.x / 2, size.y / 2, -1.0f,
@@ -82,6 +72,18 @@ AppStatus Nametable::Setup(GLuint textureId)
     zoom     = 1.0f;
     position = glm::vec3(0.0f, 0.0f, -3.0f);
     model    = glm::translate(glm::mat4(1.0f), position);
+
+    return AppStatus::Success;
+}
+
+AppStatus Nametable::Stop()
+{
+    // GLuint textureIds[] = {};
+    GLuint bufferIds[]  = { vertexBufferId, indexBufferId };
+
+    // glDeleteTextures(1, textureIds);
+    glDeleteBuffers(2, bufferIds);
+    glDeleteProgram(programId);
 
     return AppStatus::Success;
 }

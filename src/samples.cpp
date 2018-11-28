@@ -32,25 +32,16 @@ std::vector<GLuint>      Samples::indices;
 std::vector<std::string> Samples::filenames;
 
 std::shared_ptr<std::vector<GLuint>> Samples::samples =
-    std::make_shared<std::vector<GLuint>>(
-        std::vector<GLuint>
-        {
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0,
-            13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 0
-        }
-    );
+    std::make_shared<std::vector<GLuint>>
+        ( std::vector<GLuint>
+                { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0
+                , 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 0
+                }
+        );
 
-Samples::~Samples()
-{
-    //GLuint textureIds[] = { paletteTextureId };
-    GLuint bufferIds[]  = { vertexBufferId, indexBufferId };
-    
-    //glDeleteTextures(1, textureIds);
-    glDeleteBuffers(2, bufferIds);
-    glDeleteProgram(programId);
-}
+std::shared_ptr<SamplesDrawable> Samples::drawable;
 
-AppStatus Samples::Setup(GLuint textureId)
+AppStatus Samples::Start(GLuint textureId)
 {
     vertices = {
         -size.x / 2, size.y / 2, -1.0f,
@@ -90,7 +81,21 @@ AppStatus Samples::Setup(GLuint textureId)
     samplesUniformId      = glGetUniformLocation(programId, "samples");
     activeSampleUniformId = glGetUniformLocation(programId, "activeSample");
     activeColorUniformId  = glGetUniformLocation(programId, "activeColor");
+
+    drawable = std::make_shared<SamplesDrawable>();
     
+    return AppStatus::Success;
+}
+
+AppStatus Samples::Stop()
+{
+    //GLuint textureIds[] = { paletteTextureId };
+    GLuint bufferIds[] = { vertexBufferId, indexBufferId };
+    
+    //glDeleteTextures(1, textureIds);
+    glDeleteBuffers(2, bufferIds);
+    glDeleteProgram(programId);
+
     return AppStatus::Success;
 }
 
@@ -124,6 +129,9 @@ AppStatus Samples::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return AppStatus::Success;
 }
@@ -171,6 +179,11 @@ GLuint Samples::GetActiveSample()
 GLuint Samples::GetActiveColor()
 {
     return activeColor;
+}
+
+std::shared_ptr<IDrawable> Samples::GetDrawable()
+{
+    return drawable;
 }
 
 void Samples::SetSamples(std::vector<GLuint> newSamples)

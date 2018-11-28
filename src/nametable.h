@@ -18,11 +18,13 @@ class App;
 class Nametable
 {
 public:
-    ~Nametable();
-    static AppStatus Setup(GLuint textureId);
-    static void      Zoom(float x);
+    static AppStatus Start(GLuint textureId);
+    static AppStatus Stop();
     static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
+
+    static void Zoom(float x);
     static bool Click(glm::vec2 mouse);
+
     static glm::vec2 GetSize();
     static glm::vec2 GetPosition();
     static GLfloat   GetZoom();
@@ -30,7 +32,7 @@ public:
 private:
     static const glm::vec2 size;
     static const GLfloat   maxZoom;
-    
+
     static glm::vec3 position;
     static GLfloat   zoom;
 

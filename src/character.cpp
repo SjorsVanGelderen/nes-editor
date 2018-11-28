@@ -38,17 +38,9 @@ std::vector<std::string> Character::filenames;
 std::vector<GLubyte>     Character::character;
 std::vector<GLubyte>     Character::pixels;
 
-Character::~Character()
-{
-    GLuint textureIds[] = { characterTextureId };
-    GLuint bufferIds[]  = { vertexBufferId, indexBufferId };
-    
-    glDeleteTextures(1, textureIds);
-    glDeleteBuffers(2, bufferIds);
-    glDeleteProgram(programId);
-}
+std::shared_ptr<CharacterDrawable> Character::drawable;
 
-AppStatus Character::Setup(GLuint textureId)
+AppStatus Character::Start(GLuint textureId)
 {
     vertices = {
         -size.x / 2, size.y / 2, -1.0f,
@@ -120,15 +112,28 @@ AppStatus Character::Setup(GLuint textureId)
     
     position = glm::vec3(0.0f, 0.0f, 1.0f);
     
-    nametablePosition =
-        glm::vec3(
-            -frustumSize.x, //+ (size.x / 2) * nametableZoom * 2,
-            -(frustumSize.y * aspect) + ((size.y * aspect) / 2) * nametableZoom,
-            1.0f
-            );
+    nametablePosition = glm::vec3
+        ( -frustumSize.x //+ (size.x / 2) * nametableZoom * 2,
+        , -(frustumSize.y * aspect) + ((size.y * aspect) / 2) * nametableZoom
+        , 1.0f
+        );
     
     model = glm::translate(glm::mat4(1.0f), position);
+
+    drawable = std::make_shared<CharacterDrawable>();
     
+    return AppStatus::Success;
+}
+
+AppStatus Character::Stop()
+{
+    GLuint textureIds[] = { characterTextureId };
+    GLuint bufferIds[]  = { vertexBufferId, indexBufferId };
+    
+    glDeleteTextures(1, textureIds);
+    glDeleteBuffers(2, bufferIds);
+    glDeleteProgram(programId);
+
     return AppStatus::Success;
 }
 
@@ -192,6 +197,9 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return AppStatus::Success;
 }
@@ -266,6 +274,11 @@ std::vector<GLubyte> Character::GetCharacter()
 std::vector<GLubyte> Character::GetPixels()
 {    
     return pixels;
+}
+
+std::shared_ptr<IDrawable> Character::GetDrawable()
+{
+    return drawable;
 }
 
 void Character::Move(glm::vec2 p)

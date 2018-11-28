@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <IL/il.h>
+#include <IL/ilu.h>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -18,7 +20,12 @@ class Character;
 
 class Media
 {
-public:
+  public:
+    static AppStatus Start();
+    static AppStatus Stop();
+
+    static std::pair<AppStatus, GLuint> LoadTexture(std::string path);
+    
     static std::pair<AppStatus, GLuint> LoadShaderProgram(std::vector<std::string> filenames);
     
     // static std::pair<AppStatus, std::vector<GLubyte>> LoadSamples();
@@ -29,7 +36,7 @@ public:
     static AppStatus SaveCharacter();
     static AppStatus LoadCharacter();
 
-private:
+  private:
     static std::pair<AppStatus, GLuint> LoadShader(std::string filename);
 
     /* static std::vector<GLuint>           shaders; */

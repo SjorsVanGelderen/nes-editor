@@ -4,6 +4,74 @@ std::map<std::string, GLuint> Media::shaderPrograms;
 
 const auto bankSize = pow(128, 2);
 
+AppStatus Media::Start()
+{
+    ilInit();
+    ilClearColour(255, 255, 255, 0);
+
+    iluInit();
+
+    ILenum error = ilGetError();
+    if(error != IL_NO_ERROR)
+    {
+        std::cout << "Failed to init IL" << std::endl;
+        return AppStatus::FailureDevILStart;
+    }
+
+    return AppStatus::Success;
+}
+
+AppStatus Media::Stop()
+{
+    return AppStatus::Success;
+}
+
+std::pair<AppStatus, GLuint> Media::LoadTexture(std::string path)
+{
+    ILuint id = 0;
+    
+    ilGenImages(1, &id);
+    ilBindImage(id);
+
+    if(ilLoadImage(path.c_str()) != IL_TRUE)
+    {
+        std::cout << "Failed to load image with IL" << std::endl;
+
+        ILenum error = ilGetError();
+        std::cout << iluErrorString(error) << std::endl;
+        
+        return std::make_pair(AppStatus::FailureTextureLoad, 0);
+    }
+
+    if(ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE) != IL_TRUE)
+    {
+        std::cout << "Failed to convert image with IL" << std::endl;
+        return std::make_pair(AppStatus::FailureTextureLoad, 0);
+    }
+
+    auto data   = (GLuint*)ilGetData();
+    auto width  = (GLuint)ilGetInteger(IL_IMAGE_WIDTH);
+    auto height = (GLuint)ilGetInteger(IL_IMAGE_HEIGHT);
+
+    GLuint textureId;
+    
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+        0, GL_RGBA, GL_UNSIGNED_BYTE, data
+        );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    ilDeleteImages(1, &id);
+    
+    return std::make_pair(AppStatus::Success, textureId);
+}
+
 std::pair<AppStatus, GLuint> Media::LoadShaderProgram(std::vector<std::string> filenames)
 {
     auto existing = shaderPrograms.find(filenames.at(0));
@@ -240,7 +308,7 @@ AppStatus Media::LoadCharacter()
     std::vector<GLubyte> buffer;
     std::vector<GLubyte> character(bankSize * 2);
     
-    std::ifstream file("mario.chr", std::ios::in | std::ios::binary);
+    std::ifstream file("data.chr", std::ios::in | std::ios::binary);
 
     if(!file.is_open()) return AppStatus::Success;
 
