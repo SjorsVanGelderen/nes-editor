@@ -40,6 +40,8 @@ class App
     static glm::vec2 GetSize();
     static glm::vec2 GetFrustumSize();
 
+    static void SetTool(Tool t);
+
     static glm::vec2 ScreenToSurface(
         glm::vec2 point,
         glm::vec2 position,
@@ -56,6 +58,7 @@ class App
     
     static AppStatus UpdateDrawable
         ( bool* clickConsumed
+        , bool* releaseConsumed
         , std::shared_ptr<IDrawable> drawable
         , bool zoomable = false
         );
@@ -90,6 +93,7 @@ class App
     static bool canSave;
     static bool canLoad;
     static bool newClick;
+    static bool newRelease;
     
     static glm::vec2 mouse;
     static glm::vec2 click;
@@ -116,6 +120,7 @@ class App
     static std::shared_ptr<Button> buttonSave;
     static std::shared_ptr<Button> buttonLoad;
     
+    static bool dirty;
     static GLFWwindow* window;
 };
 

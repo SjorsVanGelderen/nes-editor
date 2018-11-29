@@ -2,6 +2,7 @@
 #define DEBUG_H
 
 #include <iostream>
+#include <sstream>
 
 #include "appstatus.h"
 

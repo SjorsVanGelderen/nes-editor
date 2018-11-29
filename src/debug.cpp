@@ -23,36 +23,48 @@ void Debug::GLFWError(int error, const char* description)
 
 void Debug::LogStatus(AppStatus status)
 {
+    std::string output;
+    std::stringstream stream;
+
     switch(status)
     {
     case AppStatus::FailureGLFWInit:
-        std::cout << "Failed to initialize GLFW" << std::endl;
+        stream << "Failed to initialize GLFW";
         break;
 
     case AppStatus::FailureWindow:
-        std::cout << "Failed to initialize window" << std::endl;
+        stream << "Failed to initialize window";
         break;
 
     case AppStatus::FailureGLEWInit:
-        std::cout << "Failed to initialize GLEW" << std::endl;
+        stream << "Failed to initialize GLEW";
         break;
 
     case AppStatus::FailureShaderLoad:
-        std::cout << "Failed to load shader" << std::endl;
+        stream << "Failed to load shader";
         break;
 
     case AppStatus::FailureShaderProgramLoad:
-        std::cout << "Failed to load shader program" << std::endl;
+        stream << "Failed to load shader program";
         break;
 
     case AppStatus::FailureSampleSet:
-        std::cout << "Failed to set sample" << std::endl;
+        stream << "Failed to set sample";
+        break;
+
+    case AppStatus::FailureTextureLoad:
+        stream << "Failed to load texture";
+        break;
 
     case AppStatus::Success:
-        // std::cout << "All good" << std::endl;
+        // stream << ""; // No need to log this
         break;
 
     default:
-        std::cout << "Unhandled status, can't log! ID: " << status << std::endl;
+        stream << "Unhandled status, can't log! ID: " << status;
     }
+
+    stream >> output;
+
+    std::cout << output << std::endl;
 }

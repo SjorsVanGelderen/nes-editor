@@ -26,8 +26,9 @@ public:
     static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
 
     static bool Click(glm::vec2 mouse);
-    static void Move(glm::vec2 p);
-    static void Zoom(GLfloat x);
+    static bool Release(glm::vec2 mouse);
+    static void Move(glm::vec2 displacement);
+    static void Zoom(GLfloat amount);
 
     static float     GetZoom();
     static glm::vec2 GetPosition();
@@ -101,6 +102,11 @@ struct CharacterDrawable : public IDrawable
     bool Click(glm::vec2 mouse) override
     {
         return Character::Click(mouse);
+    }
+
+    bool Release(glm::vec2 mouse) override
+    {
+        return Character::Release(mouse);
     }
 };
 

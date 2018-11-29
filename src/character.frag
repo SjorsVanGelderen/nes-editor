@@ -19,30 +19,82 @@ uniform bool      plotting;
 uniform sampler2D paletteTexture;
 uniform sampler2D characterTexture;
 
-vec2 mouseOffset =
-    vec2(
-        floor(mouse.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x,
-        floor(mouse.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
-        );
+vec2 mouseOffset = vec2
+    ( floor(mouse.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x
+    , floor(mouse.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
+    );
+
+bool xEven = uint(mod(uv.x * TEXTURE_SIZE.x, 2u)) == 0u;
+bool yEven = uint(mod(uv.y * TEXTURE_SIZE.y, 2u)) == 0u;
+
+bool onCross = (  xEven && !yEven
+              || !xEven &&  yEven
+               )
+            && ( uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
+              || uv.y >= mouseOffset.y && uv.y < mouseOffset.y + PIXEL_SIZE.y
+               );
 
 bool onHover = uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
             && uv.y >= mouseOffset.y && uv.y < mouseOffset.y + PIXEL_SIZE.y;
 
-vec2 distanceToGrid = vec2(mod(uv.x * 128.0, 4.0), mod(uv.y * 64.0, 4.0));
-
-bool onGrid = abs(distanceToGrid.x) < 0.025 || abs(distanceToGrid.y) < 0.025;
+// TODO: Could be improved
+bool onGrid = uint(mod(uv.x * TEXTURE_SIZE.x * 4u, 8u * 4u)) == 0u
+           || uint(mod(uv.y * TEXTURE_SIZE.y * 4u, 8u * 4u)) == 8u * 4u - 1u;
 
 vec2 plotCenter = plotStart + (mouse - plotStart) / 2;
 
-// Should draw only on pixels, too free now
-bool onRectangleFrame =
-       abs(uv.x - plotCenter.x) < abs(mouse.x - plotCenter.x)
-    && abs(uv.y - plotCenter.y) < abs(mouse.y - plotCenter.y)
-    && ( abs(uv.x - plotStart.x) < PIXEL_SIZE.x
-      || abs(uv.x - mouse.x)     < PIXEL_SIZE.x
-      || abs(uv.y - plotStart.y) < PIXEL_SIZE.y
-      || abs(uv.y - mouse.y)     < PIXEL_SIZE.y
-       );
+// TODO: Doesn't yield the correct coordinates yet
+vec2 plotStartPixels = vec2
+    ( floor(plotStart.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x
+    , floor(plotStart.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
+    );
+
+bool onRectangleSurface =
+    ( ( mouseOffset.x > plotStartPixels.x
+     && uv.x <= mouseOffset.x
+     && uv.x >= plotStartPixels.x
+      )
+     || 
+      ( mouseOffset.x <= plotStartPixels.x
+     && uv.x <= plotStartPixels.x
+     && uv.x >= mouseOffset.x
+      )
+    )
+   &&
+    ( ( mouseOffset.y > plotStartPixels.y
+     && uv.y <= mouseOffset.y
+     && uv.y >= plotStartPixels.y
+      )
+     ||
+      ( mouseOffset.y <= plotStartPixels.y
+     && uv.y <= plotStartPixels.y
+     && uv.y >= mouseOffset.y
+      )
+    );
+
+// TODO: Adjust so it matches only the frame
+bool onRectangleFrame = false;
+//     ( ( mouseOffset.x > plotStartPixels.x
+//      && uv.x <= mouseOffset.x
+//      && uv.x >= plotStartPixels.x
+//       )
+//      || 
+//       ( mouseOffset.x <= plotStartPixels.x
+//      && uv.x <= plotStartPixels.x
+//      && uv.x >= mouseOffset.x
+//       )
+//     )
+//    &&
+//     ( ( mouseOffset.y > plotStartPixels.y
+//      && uv.y <= mouseOffset.y
+//      && uv.y >= plotStartPixels.y
+//       )
+//      ||
+//       ( mouseOffset.y <= plotStartPixels.y
+//      && uv.y <= plotStartPixels.y
+//      && uv.y >= mouseOffset.y
+//       )
+//     );
 
 float rad = length(mouse.x - plotCenter.x) / 2.0;
 
@@ -55,6 +107,13 @@ bool onCircleFrame =
 uint sampleOffset    = activeSample > 3u ? 13u : 0u;
 uint sampleIndex     = sampleOffset + uint(mod(activeSample, 4u)) * 3u;
 uint backgroundIndex = activeSample > 3u ? 25u : 12u;
+
+uint activeColorIndex = activeColor == SAMPLES_SIZE / 2u - 1u 
+                     || activeColor == SAMPLES_SIZE - 1u
+                        ? 0u
+                        : activeColor < SAMPLES_SIZE / 2u
+                          ? uint(mod(activeColor, 3u)) + 1u
+                          : uint(mod(activeColor, 3u));
 
 void main()
 {
@@ -94,29 +153,41 @@ void main()
 
     // Translate character tone to color index
     uint attributeValue = uint(texture(characterTexture, vec2(uv.x, 1.0 - uv.y)) * 3.0);
-    
-    color =
-        tool == 0u && onHover
-          ? vec3(1.0, 1.0, 0.0) //colors[activeColor]
-        : tool == 2u // RectangleFrame
-       && plotting
-        && onCircleFrame // onRectangleFrame
-          ? vec3(1.0, 1.0, 0.0)
-        : tool == 3u // RectangleFill
-       && plotting
-       && uv.x >= plotStart.x
-       && uv.x <  mouse.x
-       && uv.y >= plotStart.y
-       && uv.y <  mouse.y
-          ? vec3(1.0, 1.0, 0.0)
-        : onGrid
-          ? vec3(1.0, 0.0, 1.0)
-        : colors[attributeValue];
 
-    // color = texture(paletteTexture,
-    //         vec2(
-    //             mod(samples[sampleIndex], PALETTE_SIZE.x)    / PALETTE_SIZE.x,
-    //             floor(samples[sampleIndex] / PALETTE_SIZE.x) / PALETTE_SIZE.y
-    //             )
-    //     ).xyz;
+    color = colors[attributeValue];
+
+    if(onGrid)
+    {
+        color = colors[attributeValue] * 0.8;
+    }
+    
+    if(tool == 0u)
+    {
+        if(onHover)
+        {
+            color = vec3(1.0, 1.0, 0.0);
+        }
+        else if(onCross)
+        {
+            color = colors[attributeValue] + vec3(0.1, 0.1, 0.0);
+        }
+    }
+    else if(tool == 1u)
+    {
+        
+    }
+    else if(tool == 2u)
+    {
+        if(plotting && onRectangleSurface)
+        {
+            if(onRectangleFrame)
+            {
+                color = vec3(1.0, 0.0, 0.0);
+            }
+            else
+            {
+                color = colors[activeColorIndex];
+            }
+        } 
+    }
 }

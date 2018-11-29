@@ -140,6 +140,11 @@ bool Palette::Click(glm::vec2 mouse)
     return false;
 }
 
+bool Palette::Release(glm::vec2 mouse)
+{
+    return false;
+}
+
 glm::vec2 Palette::GetPosition()
 {
     return position;

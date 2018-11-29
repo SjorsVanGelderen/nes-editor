@@ -28,6 +28,11 @@ struct IDrawable
     {
         return false;
     }
+
+    virtual bool Release(glm::vec2 mouse)
+    {
+        return false;
+    }
 };
 
 #endif

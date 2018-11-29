@@ -25,6 +25,7 @@ public:
     static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
     
     static bool Click(glm::vec2 mouse);
+    static bool Release(glm::vec2 mouse);
 
     static void SetColor(GLubyte paletteIndex);
     static void SetSamples(std::vector<GLuint> newSamples);
@@ -89,6 +90,11 @@ struct SamplesDrawable : public IDrawable
     bool Click(glm::vec2 mouse) override
     {
         return Samples::Click(mouse);
+    }
+
+    bool Release(glm::vec2 mouse) override
+    {
+        return Samples::Release(mouse);
     }
 };
 

@@ -8,8 +8,8 @@ enum Tool
     RectangleFrame,
     RectangleFill,
     RectangleCheckerboard,
-    CircleFrame,
-    CircleFill,
+    EllipseFrame,
+    EllipseFill,
     Fill
 };
 

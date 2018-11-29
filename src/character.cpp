@@ -139,6 +139,8 @@ AppStatus Character::Stop()
 
 AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 {
+    // : Fix the annoying displacement while zooming when off-center
+
     glm::mat4 mvp;
     
     if(App::GetMode() == AppMode::CharacterMode)
@@ -156,12 +158,22 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     const auto activeSample = Samples::GetActiveSample();
     const auto activeColor  = Samples::GetActiveColor();
     
-    // Zoom is still wrong
-    const auto plotStart           = App::GetPlotStart();
-    const auto normalizedPlotStart = glm::vec2(
-        (plotStart.x + size.x / 2.0f) / size.x,
-        1.0f - (plotStart.y + size.y / 2.0f) / size.y
+    // TODO: Offset is wrong after displacement
+    auto plotStart = App::ScreenToSurface
+        ( App::GetPlotStart()
+        , glm::vec2(position.x, position.y)
+        , size
+        , zoom
         );
+
+    plotStart.y = 1.0f - plotStart.y;
+
+    // std::cout << plotStart.x << std::endl;
+
+    // const auto normalizedPlotStart = glm::vec2
+    //     ( (plotStart.x + size.x / 2.0f) / size.x
+    //     , 1.0f - (plotStart.y + size.y / 2.0f) / size.y
+    //     );
 
     mouse.y = 1.0f - mouse.y;
     
@@ -173,7 +185,7 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     glUniform1ui(activeSampleUniformId, activeSample);
     glUniform1ui(activeColorUniformId, activeColor);
     glUniform1ui(toolUniformId, App::GetTool());
-    glUniform2fv(plotStartUniformId, 1, &normalizedPlotStart[0]);
+    glUniform2fv(plotStartUniformId, 1, &plotStart[0]);
     glUniform1ui(plottingUniformId, App::GetPlotting());
     glUniform1i(paletteTextureUniformId, 0);
     glUniform1i(characterTextureUniformId, 1);
@@ -243,6 +255,11 @@ bool Character::Click(glm::vec2 mouse)
     return false;
 }
 
+bool Character::Release(glm::vec2 mouse)
+{
+    return false;
+}
+
 glm::vec2 Character::GetPosition()
 {
     return position;
@@ -281,11 +298,14 @@ std::shared_ptr<IDrawable> Character::GetDrawable()
     return drawable;
 }
 
-void Character::Move(glm::vec2 p)
+void Character::Move(glm::vec2 displacement)
 {
+    // TODO: This might be a redundant check
     if(App::GetMode() == AppMode::CharacterMode)
     {
-        position = position + glm::vec3(p.x, p.y, 0.0) / zoom;
+        const auto d = displacement / zoom;
+        position = position + glm::vec3(d.x, -d.y, 0.0f);
+        // position = position + glm::vec3(p.x / zoom, p.y / zoom, 0.0);
     }
 }
 
@@ -313,9 +333,9 @@ void Character::CharacterToTexture()
     }
 }
 
-void Character::Zoom(GLfloat x)
-{   
-    const auto newZoom = zoom + x * 0.05f;
+void Character::Zoom(GLfloat amount)
+{
+    const auto newZoom = zoom + amount * 0.05f;
     
     zoom = newZoom < 1.0f    ? 1.0f
          : newZoom > maxZoom ? maxZoom

@@ -25,6 +25,7 @@ public:
     static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
     
     static bool Click(glm::vec2 mouse);
+    static bool Release(glm::vec2 mouse);
     
     static glm::vec2 GetPosition();
     static glm::vec2 GetSize();
@@ -78,6 +79,11 @@ struct PaletteDrawable : public IDrawable
     bool Click(glm::vec2 mouse) override
     {
         return Palette::Click(mouse);
+    }
+
+    bool Release(glm::vec2 mouse) override
+    {
+        return Palette::Release(mouse);
     }
 };
 

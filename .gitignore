@@ -36,3 +36,5 @@
 *.o
 app
 .DS_Store
+.vscode/*
+src/.vscode/

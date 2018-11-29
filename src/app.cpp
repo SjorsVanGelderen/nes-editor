@@ -6,11 +6,12 @@
 AppMode App::mode = AppMode::CharacterMode;
 Tool    App::tool = Tool::Pixel;
 
-bool App::dragging = false;
-bool App::plotting = false;
-bool App::canSave  = true;
-bool App::canLoad  = true;
-bool App::newClick = false;
+bool App::dragging   = false;
+bool App::plotting   = false;
+bool App::canSave    = true;
+bool App::canLoad    = true;
+bool App::newClick   = false;
+bool App::newRelease = false;
 
 glm::vec2 App::mouse     = glm::vec2(0, 0);
 glm::vec2 App::click     = glm::vec2(0, 0);
@@ -42,6 +43,7 @@ glm::mat4 App::view = glm::lookAt
 
 GLuint App::vaoId;
 
+bool App::dirty = true;
 GLFWwindow* App::window;
 
 /*
@@ -80,19 +82,52 @@ AppStatus App::Start()
     character = std::make_unique<Character>();
     nametable = std::make_unique<Nametable>();
 
-    buttonPencil    = std::make_shared<Button>("tool_pencil", 0);
-    buttonLine      = std::make_shared<Button>("tool_line", 1);
-    buttonRectangle = std::make_shared<Button>("tool_rectangle", 2);
-    buttonEllipse   = std::make_shared<Button>("tool_ellipse", 3);
-    buttonAbout     = std::make_shared<Button>("about", 4);
-    buttonSave      = std::make_shared<Button>("save", 5);
-    buttonLoad      = std::make_shared<Button>("load", 6);
+    buttonPencil    = std::make_shared<Button>();
+    buttonLine      = std::make_shared<Button>();
+    buttonRectangle = std::make_shared<Button>();
+    buttonEllipse   = std::make_shared<Button>();
+    buttonAbout     = std::make_shared<Button>();
+    buttonSave      = std::make_shared<Button>();
+    buttonLoad      = std::make_shared<Button>();
 
     const std::vector<const std::function<AppStatus()>> entityStarters =
         { palette->Start
         , ([]() -> AppStatus { return Samples::Start(palette->GetPaletteTextureId()); })
         , ([]() -> AppStatus { return Character::Start(palette->GetPaletteTextureId()); })
         , ([]() -> AppStatus { return Nametable::Start(palette->GetPaletteTextureId()); })
+        , ([]() -> AppStatus { return buttonPencil->Start("tool_pencil", 0, []() -> void { App::SetTool(Tool::Pixel); }); })
+        , ([]() -> AppStatus
+                   {
+                       return buttonLine->Start
+                                  ( "tool_line"
+                                  , 1
+                                  , []() -> void { App::SetTool(Tool::Line); }
+                                  ); 
+                   }
+          )
+        , ([]() -> AppStatus 
+                   {
+                       return buttonRectangle->Start
+                              ( "tool_rectangle"
+                              , 2
+                              , []() -> void { App::SetTool(Tool::RectangleFrame); }
+                              , []() -> void { App::SetTool(Tool::RectangleFill); }
+                              ); 
+                   }
+          )
+        , ([]() -> AppStatus
+                   {
+                       return buttonEllipse->Start
+                              ( "tool_ellipse"
+                              , 3
+                              , []() -> void { App::SetTool(Tool::EllipseFrame); }
+                              , []() -> void { App::SetTool(Tool::EllipseFill); }
+                              ); 
+                   }
+          )
+        , ([]() -> AppStatus { return buttonAbout->Start("about", 4, []() -> void { std::cout << "Not implemented" << std::endl; }); })
+        , ([]() -> AppStatus { return buttonSave->Start("save", 5, []() -> void { Media::SaveCharacter(); }); })
+        , ([]() -> AppStatus { return buttonLoad->Start("load", 6, []() -> void { Media::LoadCharacter(); }); })
         };
 
     for(const auto x : entityStarters)
@@ -107,19 +142,20 @@ AppStatus App::Start()
 
 AppStatus App::Update()
 {
-    bool clickConsumed = false;
+    bool clickConsumed   = false;
+    bool releaseConsumed = false;
 
     const std::vector<const std::function<AppStatus(bool clickConsumed)>> characterModeUpdaters
-        { [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, Palette::GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, Character::GetDrawable(), true); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, Samples::GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonPencil->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonLine->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonRectangle->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonEllipse->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonAbout->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonSave->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, buttonLoad->GetDrawable()); }
+        { [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, Palette::GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, Character::GetDrawable(), true); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, Samples::GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonPencil->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonLine->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonRectangle->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonEllipse->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonAbout->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonSave->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonLoad->GetDrawable()); }
         };
 
     const std::vector<const std::function<AppStatus(bool clickConsumed)>> nametableModeUpdaters
@@ -168,6 +204,8 @@ AppStatus App::Update()
                     canLoad = false;
                     Media::LoadCharacter();
                 }
+
+                dirty = true;
             }
             else if(glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
             {                
@@ -176,6 +214,8 @@ AppStatus App::Update()
                     canLoad = false;
                     Media::LoadSamples();
                 }
+
+                dirty = true;
             }
             else
             {
@@ -185,26 +225,32 @@ AppStatus App::Update()
             // Process mode switch command
             if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
             {
-                mode = AppMode::CharacterMode;
+                mode  = AppMode::CharacterMode;
+                dirty = true;
             }
             else if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
             {
-                mode = AppMode::NametableMode;
+                mode  = AppMode::NametableMode;
+                dirty = true;
             }
             else if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
             {
-                mode = AppMode::AttributeTableMode;
+                mode  = AppMode::AttributeTableMode;
+                dirty = true;
             }
         }
 
-        if(glfwGetWindowAttrib(window, GLFW_FOCUSED))
+        if(glfwGetWindowAttrib(window, GLFW_FOCUSED) && dirty)
         {
-            clickConsumed = !newClick;
+            dirty = false;
+
+            clickConsumed   = !newClick;
+            releaseConsumed = !newRelease;
             
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            std::vector<const std::function<AppStatus(bool clickConsumed)>> updaters =
-                  mode == AppMode::CharacterMode ? characterModeUpdaters
+            std::vector<const std::function<AppStatus(bool clickConsumed)>> updaters
+                = mode == AppMode::CharacterMode ? characterModeUpdaters
                 : mode == AppMode::NametableMode ? nametableModeUpdaters 
                 : attributeTableModeUpdaters;
 
@@ -213,6 +259,8 @@ AppStatus App::Update()
                 const auto result = x(clickConsumed);
                 if(result != AppStatus::Success) return result;
             }
+
+            newRelease = false;
             
             glfwSwapBuffers(window);
 
@@ -232,6 +280,7 @@ AppStatus App::Update()
                 glfwSetWindowPos(window, x, y);
                 
                 macMoved = true;
+                dirty    = true;
             }
 #endif
         }
@@ -245,6 +294,7 @@ AppStatus App::Update()
 
 AppStatus App::UpdateDrawable
     ( bool* clickConsumed
+    , bool* releaseConsumed
     , std::shared_ptr<IDrawable> drawable
     , bool zoomable
     )
@@ -260,6 +310,12 @@ AppStatus App::UpdateDrawable
     {
         drawable->Click(m); // TODO: Check if the return value is necessary
         *clickConsumed = true;
+    }
+
+    if(!*releaseConsumed && m.x != -1)
+    {
+        drawable->Release(m);
+        *releaseConsumed = true;
     }
     
     return drawable->Draw(projection, view, m);
@@ -327,6 +383,8 @@ AppStatus App::StartGL()
 
 AppStatus App::Stop()
 {
+    // TODO: Check if libraries like DevIL need to be destroyed as well
+
     const std::vector<const std::function<AppStatus()>> stoppers
         { Media::Stop
         , Palette::Stop
@@ -340,8 +398,6 @@ AppStatus App::Stop()
         const auto result = x();
         if(result != AppStatus::Success) return result;
     }
-    
-    // TODO: Check if libraries like DevIL need to be destroyed as well
 
     const GLuint vaoIds[] { vaoId };
 
@@ -353,6 +409,8 @@ AppStatus App::Stop()
 
 glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
 {
+    // TODO: This can probably be simplified
+
     position.y = -position.y;
     
     const auto dist = glm::vec2(point.x - position.x, point.y - position.y);
@@ -401,6 +459,11 @@ bool App::GetPlotting()
     return plotting;
 }
 
+void App::SetTool(Tool t)
+{
+    tool = t;
+}
+
 void App::GLFWCursorPositionCallback(GLFWwindow* window, double mX, double mY)
 {
     auto mouseX = mX / size.x;
@@ -417,16 +480,13 @@ void App::GLFWCursorPositionCallback(GLFWwindow* window, double mX, double mY)
     const auto frustumSizeY = frustumSize.y * aspect;
     
     const auto newMouse = glm::vec2
-        ( mouseX * frustumSize.x * 2 - frustumSize.y
+        ( mouseX * frustumSize.x * 2 - frustumSize.x // frustumSize.y
         , mouseY * frustumSizeY  * 2 - frustumSizeY
         );
 
     if(dragging)
     {
-        const auto displacement = glm::vec2
-            ( -(mouse.x - newMouse.x)
-            , mouse.y - newMouse.y
-            );
+        const auto displacement = newMouse - glm::vec2(mouse.x, mouse.y);
 
         if(mode == AppMode::CharacterMode)
         {
@@ -442,6 +502,7 @@ void App::GLFWCursorPositionCallback(GLFWwindow* window, double mX, double mY)
         }
     }
 
+    dirty = true;
     mouse = newMouse;
 }
 
@@ -458,8 +519,8 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
             {
             case Tool::RectangleFrame:
             case Tool::RectangleFill:
-            case Tool::CircleFrame:
-            case Tool::CircleFill:
+            case Tool::EllipseFrame:
+            case Tool::EllipseFill:
                 plotStart = click;
                 plotting = true;
                 break;
@@ -470,10 +531,13 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
         }
         else if(action == GLFW_RELEASE)
         {
-            newClick = false;
-            plotting = false;
+            newClick   = false;
+            newRelease = true;
+            plotting   = false;
         }
     }
+
+    dirty = true;
 }
 
 void App::GLFWScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
@@ -482,10 +546,12 @@ void App::GLFWScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
     {
     case AppMode::CharacterMode:
         character->Zoom(offsetY);
+        dirty = true;
         break;
 
     case AppMode::NametableMode:
         nametable->Zoom(offsetY);
+        dirty = true;
         break;
 
     case AppMode::AttributeTableMode:

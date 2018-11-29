@@ -156,6 +156,11 @@ bool Samples::Click(glm::vec2 mouse)
     return false;
 }
 
+bool Samples::Release(glm::vec2 mouse)
+{
+    return false;
+}
+
 glm::vec2 Samples::GetPosition()
 {
     return position;

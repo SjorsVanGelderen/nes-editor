@@ -3,8 +3,21 @@
 const glm::vec2 frustumSize = App::GetFrustumSize();
 const float     aspect      = App::GetAspect();
 
-Button::Button(std::string which, GLuint index)
+Button::Button()
 {
+    
+}
+
+AppStatus Button::Start
+    (std::string which
+    , GLuint index
+    , std::function<void()> aTopLeft
+    , std::function<void()> aBottomRight
+    )
+{
+    actionTopLeft     = aTopLeft;
+    actionBottomRight = aBottomRight;
+
     size = glm::vec2(frustumSize.x / 16, frustumSize.x / 16);
 
     position = glm::vec3(
@@ -44,8 +57,7 @@ Button::Button(std::string which, GLuint index)
     const auto programResult = Media::LoadShaderProgram(filenames);
     if(programResult.first != AppStatus::Success)
     {
-        // return programResult.first;
-        std::cout << "Couldn't load program for button" << std::endl;
+        return programResult.first;
     }
     
     programId = programResult.second;
@@ -57,8 +69,7 @@ Button::Button(std::string which, GLuint index)
         const auto result = Media::LoadTexture("../assets/" + which + ".png");
         if(result.first != AppStatus::Success)
         {
-            std::cout << "Failed to load texture" << std::endl;
-            std::cout << result.first << std::endl;
+            return result.first;
         }
         else
         {
@@ -67,6 +78,8 @@ Button::Button(std::string which, GLuint index)
     }
 
     drawable = std::make_shared<ButtonDrawable>(this);
+
+    return AppStatus::Success;
 }
 
 Button::~Button()
@@ -114,6 +127,18 @@ AppStatus Button::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 }
 
 bool Button::Click(glm::vec2 mouse)
+{
+    const auto action = actionBottomRight == nullptr
+                     || (mouse.x < 0.5f && mouse.y < 0.5f)
+                      ? actionTopLeft
+                      : actionBottomRight;
+    
+    action();
+
+    return true;
+}
+
+bool Button::Release(glm::vec2 mouse)
 {
     return false;
 }

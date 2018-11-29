@@ -20,12 +20,20 @@ struct ButtonDrawable;
 class Button : std::enable_shared_from_this<Button>
 {
   public:
-    Button(std::string which, GLuint index);
+    Button();
     ~Button();
 
+    AppStatus Start
+        ( std::string which
+        , GLuint index
+        , std::function<void()> actionTopLeft
+        , std::function<void()> actionBottomRight = nullptr
+        );
+    
     AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
 
     bool Click(glm::vec2 mouse);
+    bool Release(glm::vec2 mouse);
 
     glm::vec2 GetSize();
     glm::vec2 GetPosition();
@@ -35,6 +43,9 @@ class Button : std::enable_shared_from_this<Button>
     void SetPosition(glm::vec2 newPosition);
 
   private:
+    std::function<void()> actionTopLeft;
+    std::function<void()> actionBottomRight;
+
     glm::vec2 size;
     glm::vec3 position;
     glm::mat4 model;
@@ -78,6 +89,11 @@ struct ButtonDrawable : public IDrawable
     bool Click(glm::vec2 mouse) override
     {
         return button->Click(mouse);
+    }
+
+    bool Release(glm::vec2 mouse) override
+    {
+        return button->Release(mouse);
     }
 
     ~ButtonDrawable()
