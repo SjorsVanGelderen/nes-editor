@@ -139,7 +139,7 @@ AppStatus Character::Stop()
 
 AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 {
-    // : Fix the annoying displacement while zooming when off-center
+    // TODO: Fix the annoying displacement while zooming when off-center
 
     glm::mat4 mvp;
     
