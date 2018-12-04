@@ -30,13 +30,15 @@ public:
     static void Move(glm::vec2 displacement);
     static void Zoom(GLfloat amount);
 
-    static float     GetZoom();
+    static GLfloat   GetZoom();
     static glm::vec2 GetPosition();
     static glm::vec2 GetSize();
 
     static std::shared_ptr<IDrawable> GetDrawable();
 
     static AppStatus SetCharacter(std::vector<GLubyte> character);
+
+    static void SetZoom(GLfloat amount);
 
     static std::vector<GLubyte> GetCharacter();
     static std::vector<GLubyte> GetPixels();
@@ -47,8 +49,8 @@ private:
     static const glm::vec2 size;
     static const GLfloat   maxZoom;
     
-    static float zoom;
-    static float nametableZoom;
+    static GLfloat zoom;
+    static GLfloat nametableZoom;
     
     static glm::vec3 position;
     static glm::vec3 nametablePosition;

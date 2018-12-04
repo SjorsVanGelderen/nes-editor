@@ -12,6 +12,7 @@ bool App::canSave    = true;
 bool App::canLoad    = true;
 bool App::newClick   = false;
 bool App::newRelease = false;
+bool App::canZoom    = true;
 
 glm::vec2 App::mouse     = glm::vec2(0, 0);
 glm::vec2 App::click     = glm::vec2(0, 0);
@@ -238,6 +239,31 @@ AppStatus App::Update()
                 mode  = AppMode::AttributeTableMode;
                 dirty = true;
             }
+
+            if(glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
+            {
+                if(canZoom)
+                {
+                    Character::SetZoom(Character::GetZoom() + 1.0f);
+
+                    canZoom = false;
+                    dirty   = true;
+                }
+            }
+            else if(glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+            {
+                if(canZoom)
+                {
+                    Character::SetZoom(Character::GetZoom() - 1.0f);
+
+                    canZoom = false;
+                    dirty   = true;
+                }
+            }
+            else
+            {
+                canZoom = true;
+            }
         }
 
         if(glfwGetWindowAttrib(window, GLFW_FOCUSED) && dirty)
@@ -407,7 +433,7 @@ AppStatus App::Stop()
     return AppStatus::Success;
 }
 
-glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, float zoom)
+glm::vec2 App::ScreenToSurface(glm::vec2 point, glm::vec2 position, glm::vec2 size, GLfloat zoom)
 {
     // TODO: This can probably be simplified
 

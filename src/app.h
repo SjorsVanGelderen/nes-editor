@@ -45,7 +45,8 @@ class App
     static glm::vec2 ScreenToSurface(
         glm::vec2 point,
         glm::vec2 position,
-        glm::vec2 size, float zoom = 1.0f
+        glm::vec2 size,
+        GLfloat zoom = 1.0f
         );
 
   private:
@@ -94,6 +95,7 @@ class App
     static bool canLoad;
     static bool newClick;
     static bool newRelease;
+    static bool canZoom;
     
     static glm::vec2 mouse;
     static glm::vec2 click;

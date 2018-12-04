@@ -37,37 +37,38 @@ bool onCross = (  xEven && !yEven
 bool onHover = uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
             && uv.y >= mouseOffset.y && uv.y < mouseOffset.y + PIXEL_SIZE.y;
 
-// TODO: Could be improved
 bool onGrid = uint(mod(uv.x * TEXTURE_SIZE.x * 4u, 8u * 4u)) == 0u
            || uint(mod(uv.y * TEXTURE_SIZE.y * 4u, 8u * 4u)) == 8u * 4u - 1u;
 
-vec2 plotCenter = plotStart + (mouse - plotStart) / 2;
-
-// TODO: Doesn't yield the correct coordinates yet
 vec2 plotStartPixels = vec2
     ( floor(plotStart.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x
     , floor(plotStart.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
     );
 
+vec2 plotStartPixelsBorder = vec2
+    ( mouseOffset.x > plotStartPixels.x ? 0u : PIXEL_SIZE.x
+    , mouseOffset.y > plotStartPixels.y ? 0u : PIXEL_SIZE.y
+    );
+
 bool onRectangleSurface =
-    ( ( mouseOffset.x > plotStartPixels.x
-     && uv.x <= mouseOffset.x
-     && uv.x >= plotStartPixels.x
+    ( ( mouseOffset.x >= plotStartPixels.x
+     && uv.x <= mouseOffset.x + PIXEL_SIZE.x
+     && uv.x >= plotStartPixels.x + plotStartPixelsBorder.x
       )
      || 
       ( mouseOffset.x <= plotStartPixels.x
-     && uv.x <= plotStartPixels.x
+     && uv.x <= plotStartPixels.x + plotStartPixelsBorder.x
      && uv.x >= mouseOffset.x
       )
     )
    &&
-    ( ( mouseOffset.y > plotStartPixels.y
-     && uv.y <= mouseOffset.y
-     && uv.y >= plotStartPixels.y
+    ( ( mouseOffset.y >= plotStartPixels.y
+     && uv.y <= mouseOffset.y + PIXEL_SIZE.y
+        && uv.y >= plotStartPixels.y + plotStartPixelsBorder.y
       )
      ||
       ( mouseOffset.y <= plotStartPixels.y
-     && uv.y <= plotStartPixels.y
+        && uv.y <= plotStartPixels.y + plotStartPixelsBorder.y
      && uv.y >= mouseOffset.y
       )
     );
@@ -96,11 +97,11 @@ bool onRectangleFrame = false;
 //       )
 //     );
 
-float rad = length(mouse.x - plotCenter.x) / 2.0;
+// float rad = length(mouse.x - plotCenter.x) / 2.0;
 
-bool onCircleFrame =
-       abs(uv.x - plotCenter.x) / 2.0 < rad
-    && abs(uv.y - plotCenter.y)       < rad;
+// bool onCircleFrame =
+//        abs(uv.x - plotCenter.x) / 2.0 < rad
+//     && abs(uv.y - plotCenter.y)       < rad;
 
     // length(uv - plotCenter) < length(mouse - plotCenter);
 
@@ -178,16 +179,27 @@ void main()
     }
     else if(tool == 2u)
     {
-        if(plotting && onRectangleSurface)
+        if(onHover)
         {
-            if(onRectangleFrame)
+            color = vec3(1.0, 1.0, 0.0);
+        }
+        else if(onCross)
+        {
+            color = colors[attributeValue] + vec3(0.1, 0.1, 0.0);
+        }
+        else
+        {
+            if(plotting && onRectangleSurface)
             {
-                color = vec3(1.0, 0.0, 0.0);
+                if(onRectangleFrame)
+                {
+                    color = vec3(1.0, 0.0, 0.0);
+                }
+                else
+                {
+                    color = colors[activeColorIndex];
+                }
             }
-            else
-            {
-                color = colors[activeColorIndex];
-            }
-        } 
+        }
     }
 }

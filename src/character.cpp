@@ -2,7 +2,6 @@
 
 const glm::vec2 frustumSize = App::GetFrustumSize();
 const GLfloat   aspect      = App::GetAspect();
-
 const glm::vec2 textureSize = glm::vec2(256, 128);
 
 const glm::vec2 Character::size    = glm::vec2(frustumSize.x * 2, frustumSize.x);
@@ -110,7 +109,9 @@ AppStatus Character::Start(GLuint textureId)
     zoom          = 1.0f;
     nametableZoom = 0.5f;
     
-    position = glm::vec3(0.0f, 0.0f, 1.0f);
+    // position = glm::vec3(0.0f, 0.0f, 1.0f);
+
+    position = glm::vec3(0.0f, 0.0f, 0.8f);
     
     nametablePosition = glm::vec3
         ( -frustumSize.x //+ (size.x / 2) * nametableZoom * 2,
@@ -139,19 +140,29 @@ AppStatus Character::Stop()
 
 AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
 {
-    // TODO: Fix the annoying displacement while zooming when off-center
-
     glm::mat4 mvp;
     
     if(App::GetMode() == AppMode::CharacterMode)
     {
-        mvp   = projection * view * glm::scale(model, glm::vec3(zoom));
-        model = glm::translate(glm::mat4(1.0f), glm::vec3(position.x * zoom, position.y * zoom, position.z));
+        model = glm::translate
+            ( glm::scale( glm::mat4(1.0f)
+                        , glm::vec3(zoom, zoom, 1.0f)
+                        )
+            , position
+            );
+        
+        mvp = projection * view * model;
     }
     else
     {
-        mvp   = projection * view * glm::scale(model, glm::vec3(nametableZoom));
-        model = glm::translate(glm::mat4(1.0f), nametablePosition);
+        model = glm::translate
+            ( glm::scale
+              ( glm::mat4(1.0f)
+              , glm::vec3(nametableZoom, nametableZoom, 1.0f))
+              , nametablePosition
+            );
+        
+        mvp = projection * view * model;
     }
     
     const auto samples      = Samples::GetSamples();    
@@ -159,21 +170,15 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     const auto activeColor  = Samples::GetActiveColor();
     
     // TODO: Offset is wrong after displacement
+    // Also not correct when dragging while plotting
     auto plotStart = App::ScreenToSurface
         ( App::GetPlotStart()
-        , glm::vec2(position.x, position.y)
+        , glm::vec2(position.x, position.y) * zoom
         , size
         , zoom
         );
 
     plotStart.y = 1.0f - plotStart.y;
-
-    // std::cout << plotStart.x << std::endl;
-
-    // const auto normalizedPlotStart = glm::vec2
-    //     ( (plotStart.x + size.x / 2.0f) / size.x
-    //     , 1.0f - (plotStart.y + size.y / 2.0f) / size.y
-    //     );
 
     mouse.y = 1.0f - mouse.y;
     
@@ -226,12 +231,17 @@ bool Character::Click(glm::vec2 mouse)
         if(tool == Tool::Pixel)
         {
             // TODO: Try to simplify this
-            const float mouseX      = (mouse.x > 0.5f ? mouse.x - 0.5f : mouse.x) * 2;
-            const uint  bankOffset  = mouse.x > 0.5f ? pow(128, 2) : 0;
-            const uint  cIndex      = bankOffset + floor(mouse.y * 128) * 128 + floor(mouseX * 128);
-            const uint  pIndex      = floor(mouse.y * textureSize.y) * textureSize.x + floor(mouse.x * textureSize.x);
-            const uint  activeColor = Samples::GetActiveColor();
-            const uint  color       = activeColor == 12 || activeColor == 24 ? 0 : activeColor % 3 + 1; // Requires review
+            const float mouseX = (mouse.x > 0.5f ? mouse.x - 0.5f : mouse.x) * 2;
+
+            const uint bankOffset = mouse.x > 0.5f ? pow(128, 2) : 0;
+
+            const uint cIndex = bankOffset + floor(mouse.y * 128) * 128 + floor(mouseX * 128);
+
+            const uint pIndex = floor(mouse.y * textureSize.y) * textureSize.x + floor(mouse.x * textureSize.x);
+
+            const uint activeColor = Samples::GetActiveColor();
+
+            const uint color = activeColor == 12 || activeColor == 24 ? 0 : activeColor % 3 + 1; // TODO: Requires review
         
             character[cIndex] = color;
             pixels[pIndex]    = GLubyte(255 / 3 * color);
@@ -305,13 +315,22 @@ void Character::Move(glm::vec2 displacement)
     {
         const auto d = displacement / zoom;
         position = position + glm::vec3(d.x, -d.y, 0.0f);
-        // position = position + glm::vec3(p.x / zoom, p.y / zoom, 0.0);
     }
 }
 
 float Character::GetZoom()
 {
     return zoom;
+}
+
+void Character::SetZoom(GLfloat amount)
+{
+    const GLfloat proposedZoom
+         = amount < 1.0f    ? 1.0f 
+         : amount > maxZoom ? maxZoom 
+         : amount;
+
+    zoom = proposedZoom;
 }
 
 void Character::CharacterToTexture()

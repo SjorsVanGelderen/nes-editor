@@ -7,9 +7,10 @@ const glm::vec2 Samples::size = glm::vec2(
     , frustumSize.x * 2 / 3 / 13 * 2
     );
 
-glm::vec3 Samples::position = glm::vec3(
-    frustumSize.x - size.x / 2
-    , -frustumSize.y * App::GetAspect() + size.y / 2, 1.0f
+glm::vec3 Samples::position = glm::vec3
+    ( frustumSize.x - size.x / 2
+    , -frustumSize.y * App::GetAspect() + size.y / 2
+    , 1.0f
     );
 
 glm::mat4 Samples::model;
