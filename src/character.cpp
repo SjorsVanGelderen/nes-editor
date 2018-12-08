@@ -108,8 +108,6 @@ AppStatus Character::Start(GLuint textureId)
 
     zoom          = 1.0f;
     nametableZoom = 0.5f;
-    
-    // position = glm::vec3(0.0f, 0.0f, 1.0f);
 
     position = glm::vec3(0.0f, 0.0f, 0.8f);
     
@@ -169,8 +167,6 @@ AppStatus Character::Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse)
     const auto activeSample = Samples::GetActiveSample();
     const auto activeColor  = Samples::GetActiveColor();
     
-    // TODO: Offset is wrong after displacement
-    // Also not correct when dragging while plotting
     auto plotStart = App::ScreenToSurface
         ( App::GetPlotStart()
         , glm::vec2(position.x, position.y) * zoom

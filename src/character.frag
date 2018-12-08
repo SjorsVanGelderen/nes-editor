@@ -24,6 +24,26 @@ vec2 mouseOffset = vec2
     , floor(mouse.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
     );
 
+vec2 plotStartPixel = vec2
+    ( floor(plotStart.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x
+    , floor(plotStart.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
+    );
+
+vec2 plotStartPixelBorder = vec2
+    ( mouseOffset.x > plotStartPixel.x ? 0u : PIXEL_SIZE.x
+    , mouseOffset.y > plotStartPixel.y ? 0u : PIXEL_SIZE.y
+    );
+
+vec2 uvPixel = vec2
+    ( floor(uv.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x + PIXEL_SIZE.x / 2.0
+    , floor(uv.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y + PIXEL_SIZE.y / 2.0
+    );
+
+vec2 mousePixel = vec2
+    ( floor(mouse.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x + PIXEL_SIZE.x / 2.0
+    , floor(mouse.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y + PIXEL_SIZE.y / 2.0
+    );
+
 bool xEven = uint(mod(uv.x * TEXTURE_SIZE.x, 2u)) == 0u;
 bool yEven = uint(mod(uv.y * TEXTURE_SIZE.y, 2u)) == 0u;
 
@@ -32,7 +52,8 @@ bool onCross = (  xEven && !yEven
                )
             && ( uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
               || uv.y >= mouseOffset.y && uv.y < mouseOffset.y + PIXEL_SIZE.y
-               );
+               )
+            && uvPixel != mousePixel;
 
 bool onHover = uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
             && uv.y >= mouseOffset.y && uv.y < mouseOffset.y + PIXEL_SIZE.y;
@@ -40,70 +61,40 @@ bool onHover = uv.x >= mouseOffset.x && uv.x < mouseOffset.x + PIXEL_SIZE.x
 bool onGrid = uint(mod(uv.x * TEXTURE_SIZE.x * 4u, 8u * 4u)) == 0u
            || uint(mod(uv.y * TEXTURE_SIZE.y * 4u, 8u * 4u)) == 8u * 4u - 1u;
 
-vec2 plotStartPixels = vec2
-    ( floor(plotStart.x * TEXTURE_SIZE.x) / TEXTURE_SIZE.x
-    , floor(plotStart.y * TEXTURE_SIZE.y) / TEXTURE_SIZE.y
-    );
-
-vec2 plotStartPixelsBorder = vec2
-    ( mouseOffset.x > plotStartPixels.x ? 0u : PIXEL_SIZE.x
-    , mouseOffset.y > plotStartPixels.y ? 0u : PIXEL_SIZE.y
-    );
-
 bool onRectangleSurface =
-    ( ( mouseOffset.x >= plotStartPixels.x
+    ( ( mouseOffset.x >= plotStartPixel.x
      && uv.x <= mouseOffset.x + PIXEL_SIZE.x
-     && uv.x >= plotStartPixels.x + plotStartPixelsBorder.x
+     && uv.x >= plotStartPixel.x + plotStartPixelBorder.x
       )
      || 
-      ( mouseOffset.x <= plotStartPixels.x
-     && uv.x <= plotStartPixels.x + plotStartPixelsBorder.x
+      ( mouseOffset.x <= plotStartPixel.x
+     && uv.x <= plotStartPixel.x + plotStartPixelBorder.x
      && uv.x >= mouseOffset.x
       )
     )
    &&
-    ( ( mouseOffset.y >= plotStartPixels.y
+    ( ( mouseOffset.y >= plotStartPixel.y
      && uv.y <= mouseOffset.y + PIXEL_SIZE.y
-        && uv.y >= plotStartPixels.y + plotStartPixelsBorder.y
+        && uv.y >= plotStartPixel.y + plotStartPixelBorder.y
       )
      ||
-      ( mouseOffset.y <= plotStartPixels.y
-        && uv.y <= plotStartPixels.y + plotStartPixelsBorder.y
+      ( mouseOffset.y <= plotStartPixel.y
+        && uv.y <= plotStartPixel.y + plotStartPixelBorder.y
      && uv.y >= mouseOffset.y
       )
     );
 
-// TODO: Adjust so it matches only the frame
 bool onRectangleFrame = false;
-//     ( ( mouseOffset.x > plotStartPixels.x
-//      && uv.x <= mouseOffset.x
-//      && uv.x >= plotStartPixels.x
-//       )
-//      || 
-//       ( mouseOffset.x <= plotStartPixels.x
-//      && uv.x <= plotStartPixels.x
-//      && uv.x >= mouseOffset.x
-//       )
-//     )
-//    &&
-//     ( ( mouseOffset.y > plotStartPixels.y
-//      && uv.y <= mouseOffset.y
-//      && uv.y >= plotStartPixels.y
-//       )
-//      ||
-//       ( mouseOffset.y <= plotStartPixels.y
-//      && uv.y <= plotStartPixels.y
-//      && uv.y >= mouseOffset.y
-//       )
-//     );
 
-// float rad = length(mouse.x - plotCenter.x) / 2.0;
+// vec2 a = uv - plotStart;
+vec2 a = uvPixel - plotStartPixel;
+vec2 b = mouse - plotStart;
 
-// bool onCircleFrame =
-//        abs(uv.x - plotCenter.x) / 2.0 < rad
-//     && abs(uv.y - plotCenter.y)       < rad;
+float d = dot(a, b);
 
-    // length(uv - plotCenter) < length(mouse - plotCenter);
+vec2 p = d / pow(length(b), 2) * b;
+
+float dist = distance(a, p);
 
 uint sampleOffset    = activeSample > 3u ? 13u : 0u;
 uint sampleIndex     = sampleOffset + uint(mod(activeSample, 4u)) * 3u;
@@ -156,49 +147,53 @@ void main()
     uint attributeValue = uint(texture(characterTexture, vec2(uv.x, 1.0 - uv.y)) * 3.0);
 
     color = colors[attributeValue];
-
-    if(onGrid)
+    
+    if(onCross)
+    {
+        color = colors[attributeValue] + vec3(0.1, 0.1, 0.0);
+    }
+    else if(onGrid)
     {
         color = colors[attributeValue] * 0.8;
+    }
+    else if(onHover)
+    {
+        color = colors[activeColorIndex];
     }
     
     if(tool == 0u)
     {
-        if(onHover)
-        {
-            color = vec3(1.0, 1.0, 0.0);
-        }
-        else if(onCross)
-        {
-            color = colors[attributeValue] + vec3(0.1, 0.1, 0.0);
-        }
+        
     }
     else if(tool == 1u)
     {
-        
+        if( plotting
+        && d > 0
+        && (plotStartPixel.x <= mousePixel.x
+                ? (uvPixel.x >= plotStartPixel.x && uvPixel.x < mousePixel.x)
+                : (uvPixel.x <= plotStartPixel.x && uvPixel.x > mousePixel.x)
+           )
+        && (plotStartPixel.y <= mousePixel.y
+                ? (uvPixel.y >= plotStartPixel.y && uvPixel.y < mousePixel.y)
+                : (uvPixel.y <= plotStartPixel.y && uvPixel.y > mousePixel.y)
+           )
+        && dist <= PIXEL_SIZE.x
+        )
+        {
+            color = colors[activeColorIndex];
+        }
     }
     else if(tool == 2u)
     {
-        if(onHover)
+        if(plotting && onRectangleSurface)
         {
-            color = vec3(1.0, 1.0, 0.0);
-        }
-        else if(onCross)
-        {
-            color = colors[attributeValue] + vec3(0.1, 0.1, 0.0);
-        }
-        else
-        {
-            if(plotting && onRectangleSurface)
+            if(onRectangleFrame)
             {
-                if(onRectangleFrame)
-                {
-                    color = vec3(1.0, 0.0, 0.0);
-                }
-                else
-                {
-                    color = colors[activeColorIndex];
-                }
+                color = vec3(1.0, 0.0, 0.0);
+            }
+            else
+            {
+                color = colors[activeColorIndex];
             }
         }
     }

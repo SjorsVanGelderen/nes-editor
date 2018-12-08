@@ -16,7 +16,7 @@ bool App::canZoom    = true;
 
 glm::vec2 App::mouse     = glm::vec2(0, 0);
 glm::vec2 App::click     = glm::vec2(0, 0);
-glm::vec2 App::plotStart = glm::vec2(-1, -1);
+glm::vec2 App::plotStart = glm::vec2(-1, -1); // This is not valid, it's actually still on the surface
 
 /*
     Visuals
@@ -147,16 +147,26 @@ AppStatus App::Update()
     bool releaseConsumed = false;
 
     const std::vector<const std::function<AppStatus(bool clickConsumed)>> characterModeUpdaters
-        { [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, Palette::GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, Character::GetDrawable(), true); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, Samples::GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonPencil->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonLine->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonRectangle->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonEllipse->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonAbout->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonSave->GetDrawable()); }
-        , [&](bool clickConsumed) -> AppStatus { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonLoad->GetDrawable()); }
+        { [&](bool clickConsumed) -> AppStatus
+            { return UpdateDrawable(&clickConsumed, &releaseConsumed, Palette::GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, Character::GetDrawable(), true); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, Samples::GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonPencil->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonLine->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonRectangle->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonEllipse->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonAbout->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonSave->GetDrawable()); }
+        , [&](bool clickConsumed) -> AppStatus
+          { return UpdateDrawable(&clickConsumed, &releaseConsumed, buttonLoad->GetDrawable()); }
         };
 
     const std::vector<const std::function<AppStatus(bool clickConsumed)>> nametableModeUpdaters
@@ -173,7 +183,8 @@ AppStatus App::Update()
         // Keyboard input
         {
             // Process dragging input
-            dragging = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+            // I might allow dragging during plotting again at a later stage
+            dragging = !plotting && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
 
             // Process save commands
             if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -543,6 +554,7 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
 
             switch(tool)
             {
+            case Tool::Line:
             case Tool::RectangleFrame:
             case Tool::RectangleFill:
             case Tool::EllipseFrame:
@@ -568,22 +580,20 @@ void App::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
 
 void App::GLFWScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
 {
-    switch(mode)
+    if(plotting) return;
+    
+    if(mode == AppMode::CharacterMode)
     {
-    case AppMode::CharacterMode:
         character->Zoom(offsetY);
         dirty = true;
-        break;
-
-    case AppMode::NametableMode:
+    }
+    else if(AppMode::NametableMode)
+    {
         nametable->Zoom(offsetY);
         dirty = true;
-        break;
-
-    case AppMode::AttributeTableMode:
-        break;
-
-    default:
-        break;
     }
+    // else if(AppMode::AttributeTableMode)
+    // {
+
+    // }
 }
