@@ -5,9 +5,9 @@
 
 int main()
 {    
-    auto status = App::Start();
+  auto status = App::Start();
 
-    Debug::LogStatus(status);
-    
-    return status;
+  Debug::LogStatus(status);
+  
+  return status;
 }

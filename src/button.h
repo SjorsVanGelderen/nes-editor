@@ -19,89 +19,93 @@ struct ButtonDrawable;
 
 class Button : std::enable_shared_from_this<Button>
 {
-  public:
-    Button();
-    ~Button();
+public:
+  Button();
+  ~Button();
 
-    AppStatus Start
-        ( std::string which
-        , GLuint index
-        , std::function<void()> actionTopLeft
-        , std::function<void()> actionBottomRight = nullptr
-        );
-    
-    AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
+  AppStatus Start
+    ( std::string which
+    , GLuint index
+    , std::function<GLuint()> activeSidePredicate
+    , std::function<void()> actionTopLeft
+    , std::function<void()> actionBottomRight = nullptr
+    );
+  
+  AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
 
-    bool Click(glm::vec2 mouse);
-    bool Release(glm::vec2 mouse);
+  bool Click(glm::vec2 mouse);
+  bool Release(glm::vec2 mouse);
 
-    glm::vec2 GetSize();
-    glm::vec2 GetPosition();
+  glm::vec2 GetSize();
+  glm::vec2 GetPosition();
 
-    std::shared_ptr<IDrawable> GetDrawable();
-    
-    void SetPosition(glm::vec2 newPosition);
+  std::shared_ptr<IDrawable> GetDrawable();
+  
+  void SetPosition(glm::vec2 newPosition);
 
-  private:
-    std::function<void()> actionTopLeft;
-    std::function<void()> actionBottomRight;
+private:
+  std::function<GLuint()> activeSide;
+  std::function<void()> actionTopLeft;
+  std::function<void()> actionBottomRight;
 
-    glm::vec2 size;
-    glm::vec3 position;
-    glm::mat4 model;
+  glm::vec2 size;
+  glm::vec3 position;
+  glm::mat4 model;
 
-    GLuint programId;
-    GLuint vertexBufferId;
-    GLuint indexBufferId;
-    GLuint textureId;
-    
-    GLint mvpUniformId;
-    GLint mouseUniformId;
+  GLuint programId;
+  GLuint vertexBufferId;
+  GLuint indexBufferId;
+  GLuint textureId;
+  
+  GLint mvpUniformId;
+  GLint mouseUniformId;
+  GLint activeSideUniformId;
+  GLint isTwoSidedUniformId;
 
-    std::vector<GLfloat> vertices;
-    std::vector<GLuint>  indices;
+  std::vector<GLfloat> vertices;
+  std::vector<GLuint>  indices;
 
-    std::shared_ptr<ButtonDrawable> drawable;
+  std::shared_ptr<ButtonDrawable> drawable;
 };
 
 struct ButtonDrawable : public IDrawable
 {
-    ButtonDrawable(Button* b) : IDrawable()
-    {
-        button = b;
-    }
+  ButtonDrawable(Button* b) : IDrawable()
+  {
+    button = b;
+  }
 
-    AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse) override
-    {
-        return button->Draw(projection, view, mouse);
-    }
+  AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse) override
+  {
+    return button->Draw(projection, view, mouse);
+  }
 
-    glm::vec2 GetPosition() override
-    { 
-        return button->GetPosition();
-    }
+  glm::vec2 GetPosition() override
+  { 
+    return button->GetPosition();
+  }
 
-    glm::vec2 GetSize() override
-    {
-        return button->GetSize();
-    }
+  glm::vec2 GetSize() override
+  {
+    return button->GetSize();
+  }
 
-    bool Click(glm::vec2 mouse) override
-    {
-        return button->Click(mouse);
-    }
+  bool Click(glm::vec2 mouse) override
+  {
+    return button->Click(mouse);
+  }
 
-    bool Release(glm::vec2 mouse) override
-    {
-        return button->Release(mouse);
-    }
+  bool Release(glm::vec2 mouse) override
+  {
+    return button->Release(mouse);
+  }
 
-    ~ButtonDrawable()
-    {
-      button = nullptr;
-    }
+  ~ButtonDrawable()
+  {
+    button = nullptr;
+  }
 
-    Button* button;
+  Button* button;
 };
 
 #endif

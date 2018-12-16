@@ -20,27 +20,27 @@ class Character;
 
 class Media
 {
-  public:
-    static AppStatus Start();
-    static AppStatus Stop();
+public:
+  static AppStatus Start();
+  static AppStatus Stop();
 
-    static std::pair<AppStatus, GLuint> LoadTexture(std::string path);
-    
-    static std::pair<AppStatus, GLuint> LoadShaderProgram(std::vector<std::string> filenames);
-    
-    // static std::pair<AppStatus, std::vector<GLubyte>> LoadSamples();
-    // static std::pair<AppStatus, std::vector<GLubyte>> LoadCharacter();
-    
-    static AppStatus SaveSamples();
-    static AppStatus LoadSamples();
-    static AppStatus SaveCharacter();
-    static AppStatus LoadCharacter();
+  static std::pair<AppStatus, GLuint> LoadTexture(std::string path);
+  
+  static std::pair<AppStatus, GLuint> LoadShaderProgram(std::vector<std::string> filenames);
+  
+  // static std::pair<AppStatus, std::vector<GLubyte>> LoadSamples();
+  // static std::pair<AppStatus, std::vector<GLubyte>> LoadCharacter();
+  
+  static AppStatus SaveSamples();
+  static AppStatus LoadSamples();
+  static AppStatus SaveCharacter();
+  static AppStatus LoadCharacter();
 
-  private:
-    static std::pair<AppStatus, GLuint> LoadShader(std::string filename);
+private:
+  static std::pair<AppStatus, GLuint> LoadShader(std::string filename);
 
-    /* static std::vector<GLuint>           shaders; */
-    static std::map<std::string, GLuint> shaderPrograms;
+  /* static std::vector<GLuint>           shaders; */
+  static std::map<std::string, GLuint> shaderPrograms;
 };
 
 #endif

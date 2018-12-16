@@ -3,14 +3,14 @@
 
 enum Tool
 {
-    Pixel = 0,
-    Line,
-    RectangleFrame,
-    RectangleFill,
-    RectangleCheckerboard,
-    EllipseFrame,
-    EllipseFill,
-    Fill
+  Pixel = 0,
+  Line,
+  RectangleFrame,
+  RectangleFill,
+  RectangleCheckerboard,
+  EllipseFrame,
+  EllipseFill,
+  Fill
 };
 
 #endif

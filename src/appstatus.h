@@ -3,15 +3,15 @@
 
 enum AppStatus
 {
-    FailureGLFWInit = 0,
-    FailureWindow,
-    FailureGLEWInit,
-    FailureShaderLoad,
-    FailureShaderProgramLoad,
-    FailureSampleSet,
-    FailureTextureLoad,
-    FailureDevILStart,
-    Success
+  FailureGLFWInit = 0,
+  FailureWindow,
+  FailureGLEWInit,
+  FailureShaderLoad,
+  FailureShaderProgramLoad,
+  FailureSampleSet,
+  FailureTextureLoad,
+  FailureDevILStart,
+  Success
 };
 
 #endif

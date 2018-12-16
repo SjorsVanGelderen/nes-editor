@@ -21,95 +21,95 @@ struct CharacterDrawable;
 class Character
 {
 public:
-    static AppStatus Start(GLuint textureId);
-    static AppStatus Stop();
-    static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
+  static AppStatus Start(GLuint textureId);
+  static AppStatus Stop();
+  static AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse);
 
-    static bool Click(glm::vec2 mouse);
-    static bool Release(glm::vec2 mouse);
-    static void Move(glm::vec2 displacement);
-    static void Zoom(GLfloat amount);
+  static bool Click(glm::vec2 mouse);
+  static bool Release(glm::vec2 mouse);
+  static void Move(glm::vec2 displacement);
+  static void Zoom(GLfloat amount);
 
-    static GLfloat   GetZoom();
-    static glm::vec2 GetPosition();
-    static glm::vec2 GetSize();
+  static GLfloat   GetZoom();
+  static glm::vec2 GetPosition();
+  static glm::vec2 GetSize();
 
-    static std::shared_ptr<IDrawable> GetDrawable();
+  static std::shared_ptr<IDrawable> GetDrawable();
 
-    static AppStatus SetCharacter(std::vector<GLubyte> character);
+  static AppStatus SetCharacter(std::vector<GLubyte> character);
 
-    static void SetZoom(GLfloat amount);
+  static void SetZoom(GLfloat amount);
 
-    static std::vector<GLubyte> GetCharacter();
-    static std::vector<GLubyte> GetPixels();
+  static std::vector<GLubyte> GetCharacter();
+  static std::vector<GLubyte> GetPixels();
 
 private:
-    static void CharacterToTexture();
+  static void CharacterToTexture();
+  
+  static const glm::vec2 size;
+  static const GLfloat   maxZoom;
+  
+  static GLfloat zoom;
+  static GLfloat nametableZoom;
+  
+  static glm::vec3 position;
+  static glm::vec3 nametablePosition;
+  static glm::mat4 model;
+  
+  static GLuint programId;
+  static GLuint vertexBufferId;
+  static GLuint indexBufferId;
+  static GLuint paletteTextureId;
+  static GLuint characterTextureId;
+  
+  static GLint mvpUniformId;
+  static GLint mouseUniformId;
+  static GLint samplesUniformId;
+  static GLint activeSampleUniformId;
+  static GLint activeColorUniformId;
+  static GLint toolUniformId;
+  static GLint plottingUniformId;
+  static GLint plotStartUniformId;
+  static GLint paletteTextureUniformId;
+  static GLint characterTextureUniformId;
     
-    static const glm::vec2 size;
-    static const GLfloat   maxZoom;
-    
-    static GLfloat zoom;
-    static GLfloat nametableZoom;
-    
-    static glm::vec3 position;
-    static glm::vec3 nametablePosition;
-    static glm::mat4 model;
-    
-    static GLuint programId;
-    static GLuint vertexBufferId;
-    static GLuint indexBufferId;
-    static GLuint paletteTextureId;
-    static GLuint characterTextureId;
-    
-    static GLint mvpUniformId;
-    static GLint mouseUniformId;
-    static GLint samplesUniformId;
-    static GLint activeSampleUniformId;
-    static GLint activeColorUniformId;
-    static GLint toolUniformId;
-    static GLint plottingUniformId;
-    static GLint plotStartUniformId;
-    static GLint paletteTextureUniformId;
-    static GLint characterTextureUniformId;
-    
-    static std::vector<GLfloat>     vertices;
-    static std::vector<GLuint>      indices;
-    static std::vector<std::string> filenames;
-    static std::vector<GLubyte>     character;
-    static std::vector<GLubyte>     pixels;
+  static std::vector<GLfloat>     vertices;
+  static std::vector<GLuint>      indices;
+  static std::vector<std::string> filenames;
+  static std::vector<GLubyte>     character;
+  static std::vector<GLubyte>     pixels;
 
-    static std::shared_ptr<CharacterDrawable> drawable;
+  static std::shared_ptr<CharacterDrawable> drawable;
 };
 
 struct CharacterDrawable : public IDrawable
 {
-    CharacterDrawable() : IDrawable() {}
+  CharacterDrawable() : IDrawable() {}
 
-    AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse) override
-    {
-        return Character::Draw(projection, view, mouse);
-    }
+  AppStatus Draw(glm::mat4 projection, glm::mat4 view, glm::vec2 mouse) override
+  {
+    return Character::Draw(projection, view, mouse);
+  }
 
-    glm::vec2 GetPosition() override
-    { 
-        return Character::GetPosition();
-    }
+  glm::vec2 GetPosition() override
+  { 
+    return Character::GetPosition();
+  }
 
-    glm::vec2 GetSize() override
-    {
-        return Character::GetSize();
-    }
+  glm::vec2 GetSize() override
+  {
+    return Character::GetSize();
+  }
 
-    bool Click(glm::vec2 mouse) override
-    {
-        return Character::Click(mouse);
-    }
+  bool Click(glm::vec2 mouse) override
+  {
+    return Character::Click(mouse);
+  }
 
-    bool Release(glm::vec2 mouse) override
-    {
-        return Character::Release(mouse);
-    }
+  bool Release(glm::vec2 mouse) override
+  {
+    return Character::Release(mouse);
+  }
 };
 
 #endif

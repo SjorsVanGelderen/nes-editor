@@ -3,9 +3,9 @@
 
 enum AppMode
 {
-    CharacterMode = 0,
-    NametableMode,
-    AttributeTableMode
+  CharacterMode = 0,
+  NametableMode,
+  AttributeTableMode
 };
 
 #endif
